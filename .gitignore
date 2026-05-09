@@ -1,0 +1,11 @@
+# Root gitignore
+.env
+.DS_Store
+*.log
+node_modules/
+.next/
+target/
+*.class
+*.jar
+.idea/
+.vscode/
