@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
  * Task create/edit form modal with validation.
  * Supports both creation and editing modes based on the `task` prop.
  */
-export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoading = false }) {
+export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoading = false, isTodayView = false }) {
   const isEditing = !!task;
 
   const [formData, setFormData] = useState({
@@ -170,23 +170,26 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
                   {errors.status && <p className="mt-1 text-xs text-[var(--color-danger)]">{errors.status}</p>}
                 </div>
 
-                {/* Due Date */}
-                <div>
-                  <label htmlFor="task-dueDate" className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
-                    Due Date
-                  </label>
-                  <input
-                    id="task-dueDate"
-                    name="dueDate"
-                    type="date"
-                    value={formData.dueDate}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2.5 text-sm border rounded-xl bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-colors outline-none ${
-                      errors.dueDate ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)]'
-                    }`}
-                  />
-                  {errors.dueDate && <p className="mt-1 text-xs text-[var(--color-danger)]">{errors.dueDate}</p>}
-                </div>
+                {/* Due Date - Only visible if not in Today view */}
+                {!isTodayView && (
+                  <div>
+                    <label htmlFor="task-dueDate" className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                      Due Date
+                    </label>
+                    <input
+                      id="task-dueDate"
+                      name="dueDate"
+                      type="date"
+                      min={new Date().toISOString().split('T')[0]}
+                      value={formData.dueDate}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-2.5 text-sm border rounded-xl bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-colors outline-none ${
+                        errors.dueDate ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)]'
+                      }`}
+                    />
+                    {errors.dueDate && <p className="mt-1 text-xs text-[var(--color-danger)]">{errors.dueDate}</p>}
+                  </div>
+                )}
               </div>
 
               {/* Actions */}
