@@ -180,6 +180,15 @@ export default function TaskCard({ task, onEdit, onDelete, onStatusChange, onTog
                 {task.description}
               </span>
             )}
+
+            {task.subTasks && task.subTasks.length > 0 && (
+              <span className="flex items-center gap-1.5 ml-auto text-[11px] font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full border border-gray-200 dark:border-gray-700">
+                <svg className="w-3 h-3 text-[#5a32fa]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                {task.subTasks.filter(st => st.completed).length}/{task.subTasks.length}
+              </span>
+            )}
           </div>
         )}
       </div>

@@ -1,9 +1,12 @@
 package com.organia.taskmanager.service;
 
+import com.organia.taskmanager.dto.SubTaskRequest;
+import com.organia.taskmanager.dto.SubTaskResponse;
 import com.organia.taskmanager.dto.TaskRequest;
 import com.organia.taskmanager.dto.TaskResponse;
 import com.organia.taskmanager.exception.ResourceNotFoundException;
 import com.organia.taskmanager.model.Priority;
+import com.organia.taskmanager.model.SubTask;
 import com.organia.taskmanager.model.Task;
 import com.organia.taskmanager.model.TaskStatus;
 import com.organia.taskmanager.model.User;
@@ -13,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,9 +29,11 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TaskService {
 
     private final TaskRepository taskRepository;
+    private final SubTaskRepository subTaskRepository;
 
     /** Create a new task for the authenticated user. */
     public TaskResponse createTask(TaskRequest request, User user) {
@@ -41,7 +47,18 @@ public class TaskService {
                 .user(user)
                 .build();
 
-        Task saved = taskRepository.save(task);
+        if (request.getSubTasks() != null) {
+            for (SubTaskRequest str : request.getSubTasks()) {
+                SubTask st = SubTask.builder()
+                        .title(str.getTitle())
+                        .completed(str.isCompleted())
+                        .task(task)
+                        .build();
+                task.getSubTasks().add(st);
+            }
+        }
+
+        Task saved = taskRepository.saveAndFlush(task);
         return mapToResponse(saved);
     }
 
@@ -92,7 +109,21 @@ public class TaskService {
             task.setPriority(request.getPriority());
         }
 
-        Task updated = taskRepository.save(task);
+        // Handle sub-tasks update
+        if (request.getSubTasks() != null) {
+            // Clear existing and add new (Orphan removal will handle deletions)
+            task.getSubTasks().clear();
+            for (SubTaskRequest str : request.getSubTasks()) {
+                SubTask st = SubTask.builder()
+                        .title(str.getTitle())
+                        .completed(str.isCompleted())
+                        .task(task)
+                        .build();
+                task.getSubTasks().add(st);
+            }
+        }
+
+        Task updated = taskRepository.saveAndFlush(task);
         return mapToResponse(updated);
     }
 
@@ -136,6 +167,15 @@ public class TaskService {
                 .updatedAt(task.getUpdatedAt())
                 .category(task.getCategory())
                 .priority(task.getPriority())
+                .subTasks(task.getSubTasks() != null ? task.getSubTasks().stream().map(this::mapSubTaskToResponse).collect(Collectors.toList()) : java.util.Collections.emptyList())
+                .build();
+    }
+
+    private SubTaskResponse mapSubTaskToResponse(SubTask st) {
+        return SubTaskResponse.builder()
+                .id(st.getId())
+                .title(st.getTitle())
+                .completed(st.isCompleted())
                 .build();
     }
 }

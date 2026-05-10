@@ -27,4 +27,5 @@ public class TaskResponse {
     private LocalDateTime updatedAt;
     private String category;
     private Priority priority;
+    private java.util.List<SubTaskResponse> subTasks;
 }

@@ -31,4 +31,6 @@ public class TaskRequest {
     private String category;
 
     private Priority priority;
+
+    private java.util.List<SubTaskRequest> subTasks = new java.util.ArrayList<>();
 }

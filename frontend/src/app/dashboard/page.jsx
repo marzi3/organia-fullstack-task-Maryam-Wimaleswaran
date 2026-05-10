@@ -15,6 +15,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import CalendarView from '@/components/CalendarView';
 import KanbanView from '@/components/KanbanView';
 import AnalyticsView from '@/components/AnalyticsView';
+import CommandPalette from '@/components/CommandPalette';
 
 /**
  * Main dashboard page — protected route.
@@ -66,6 +67,7 @@ export default function DashboardPage() {
   const [isQuickAddActive, setIsQuickAddActive] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [filterOption, setFilterOption] = useState('all'); // all, active, completed
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   // Redirect if unauthenticated
   useEffect(() => {
@@ -73,6 +75,18 @@ export default function DashboardPage() {
       router.push('/login');
     }
   }, [isAuthenticated, authLoading, router]);
+
+  // Global Keyboard Shortcuts (Cmd+K)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   // Debounce search input
   useEffect(() => {
@@ -296,9 +310,14 @@ export default function DashboardPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-9 pr-3 py-1.5 border-transparent rounded bg-white dark:bg-gray-800 text-[#5a32fa] dark:text-purple-400 placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-purple-500 focus:border-transparent sm:text-sm"
+              className="block w-full pl-9 pr-12 py-1.5 border-transparent rounded bg-white dark:bg-gray-800 text-[#5a32fa] dark:text-purple-400 placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-purple-500 focus:border-transparent sm:text-sm"
               placeholder="Search tasks..."
             />
+            <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+              <span className="text-[9px] font-bold text-[#5a32fa]/60 dark:text-purple-400/60 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-600">
+                ⌘K
+              </span>
+            </div>
           </div>
         </div>
 
@@ -922,6 +941,26 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Command Palette (Spotlight Search) */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        tasks={tasks}
+        onNavigate={(view) => {
+          setCurrentView(view);
+          setStatusFilter('');
+          setSelectedCategory(null);
+        }}
+        onCreateTask={(task) => {
+          if (task && task.id) {
+            setEditingTask(task);
+            setIsFormOpen(true);
+          } else {
+            setEditingTask(null);
+            setIsFormOpen(true);
+          }
+        }}
+      />
     </div>
   );
 }

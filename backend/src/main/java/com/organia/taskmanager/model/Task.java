@@ -55,4 +55,8 @@ public class Task {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<SubTask> subTasks = new java.util.ArrayList<>();
 }

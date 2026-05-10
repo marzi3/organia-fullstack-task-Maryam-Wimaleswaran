@@ -17,6 +17,8 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
     dueDate: '',
     priority: 'MEDIUM',
   });
+  const [subTasks, setSubTasks] = useState([]);
+  const [newSubTaskTitle, setNewSubTaskTitle] = useState('');
   const [errors, setErrors] = useState({});
 
   // Populate form when editing
@@ -29,8 +31,10 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
         dueDate: task.dueDate || '',
         priority: task.priority || 'MEDIUM',
       });
+      setSubTasks(task.subTasks || []);
     } else {
       setFormData({ title: '', description: '', status: 'TO_DO', dueDate: '', priority: 'MEDIUM' });
+      setSubTasks([]);
     }
     setErrors({});
   }, [task, isOpen]);
@@ -56,9 +60,30 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
       ...formData,
       dueDate: formData.dueDate || null,
       description: formData.description || null,
+      subTasks: subTasks.map(st => ({ 
+        id: st.id || null, 
+        title: st.title, 
+        completed: st.completed 
+      }))
     };
 
     onSubmit(data);
+  };
+
+  const handleAddSubTask = () => {
+    if (!newSubTaskTitle.trim()) return;
+    setSubTasks([...subTasks, { title: newSubTaskTitle.trim(), completed: false }]);
+    setNewSubTaskTitle('');
+  };
+
+  const handleRemoveSubTask = (index) => {
+    setSubTasks(subTasks.filter((_, i) => i !== index));
+  };
+
+  const handleToggleSubTask = (index) => {
+    const updated = [...subTasks];
+    updated[index].completed = !updated[index].completed;
+    setSubTasks(updated);
   };
 
   const handleChange = (e) => {
@@ -222,6 +247,75 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
                       {opt.label}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Sub-tasks Section */}
+              <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-gray-700/50">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                    Checklist ({subTasks.length})
+                  </label>
+                  {subTasks.length > 0 && (
+                    <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">
+                      {Math.round((subTasks.filter(st => st.completed).length / subTasks.length) * 100)}% Complete
+                    </span>
+                  )}
+                </div>
+                
+                <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+                  {subTasks.map((st, index) => (
+                    <motion.div 
+                      key={index} 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 group transition-all hover:border-indigo-200 dark:hover:border-indigo-900/50"
+                    >
+                      <input 
+                        type="checkbox" 
+                        checked={st.completed}
+                        onChange={() => handleToggleSubTask(index)}
+                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                      />
+                      <span className={`flex-1 text-sm font-medium transition-all ${st.completed ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200'}`}>
+                        {st.title}
+                      </span>
+                      <button 
+                        type="button"
+                        onClick={() => handleRemoveSubTask(index)}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </motion.div>
+                  ))}
+                  
+                  {subTasks.length === 0 && (
+                    <div className="py-8 flex flex-col items-center justify-center text-gray-300 dark:text-gray-600 border-2 border-dashed border-gray-100 dark:border-gray-700/50 rounded-2xl">
+                       <svg className="w-8 h-8 mb-2 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                       <p className="text-[10px] font-bold uppercase tracking-wider">No items yet</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 relative">
+                  <input
+                    type="text"
+                    value={newSubTaskTitle}
+                    onChange={(e) => setNewSubTaskTitle(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSubTask())}
+                    placeholder="Add a step to this task..."
+                    className="flex-1 px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSubTask}
+                    className="px-4 text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
