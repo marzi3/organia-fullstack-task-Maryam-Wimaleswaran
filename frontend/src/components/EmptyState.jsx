@@ -18,8 +18,8 @@ export default function EmptyState({ onCreateTask }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
       </div>
-      <h3 className="text-xl font-semibold text-[var(--color-text)] mb-2">No tasks yet</h3>
-      <p className="text-[var(--color-text-secondary)] text-center max-w-sm mb-6">
+      <h3 className="text-xl font-semibold text-[var(--color-text)] dark:text-gray-100 mb-2">No tasks yet</h3>
+      <p className="text-[var(--color-text-secondary)] dark:text-gray-400 text-center max-w-sm mb-6">
         Your task list is empty. Create your first task to get started with organizing your work.
       </p>
       <button

@@ -6,6 +6,8 @@ import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { BackgroundBeams } from '@/components/ui/background-beams';
+import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
 
 /**
  * Landing page — hero section with animated feature cards and CTA buttons.
@@ -65,52 +67,53 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen gradient-mesh">
+    <div className="min-h-screen bg-[#fafafa]">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
-          <div className="text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-primary-light)] border border-indigo-200 mb-6">
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
-                Full Stack Task Manager
-              </span>
+      {/* Hero Section - Clean, Premium SaaS Look */}
+      <section className="relative overflow-hidden pt-24 pb-32 sm:pt-32 sm:pb-40">
+        {/* Extremely subtle background pattern instead of loud beams */}
+        <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
+          <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-indigo-400 opacity-[0.15] blur-[100px]"></div>
+        </div>
+        
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="max-w-3xl flex flex-col items-center"
+          >
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 mb-8 shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+              Next-Gen Task Management
+            </span>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[var(--color-text)] leading-tight tracking-tight">
-                Organize Your Work
-                <br />
-                <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 bg-clip-text text-transparent">
-                  With Clarity & Focus
-                </span>
-              </h1>
+            <TextGenerateEffect 
+              words="Organize your work with absolute clarity" 
+              className="mb-6 text-slate-900 tracking-tight"
+            />
 
-              <p className="mt-6 text-lg sm:text-xl text-[var(--color-text-secondary)] max-w-2xl mx-auto leading-relaxed">
-                A modern task management application built with Next.js, Spring Boot, and PostgreSQL.
-                Manage your tasks efficiently with a beautiful, intuitive interface.
-              </p>
+            <p className="mt-4 text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
+              A high-performance task management platform built with Next.js and Spring Boot. 
+              Elevate your team's productivity with an interface designed for focus.
+            </p>
 
-              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link
-                  href="/register"
-                  className="w-full sm:w-auto px-8 py-3.5 text-base font-semibold text-white rounded-xl gradient-primary hover:opacity-90 transition-opacity shadow-lg shadow-indigo-500/25"
-                >
-                  Get Started Free
-                </Link>
-                <Link
-                  href="/login"
-                  className="w-full sm:w-auto px-8 py-3.5 text-base font-semibold text-[var(--color-text)] bg-white border border-[var(--color-border)] rounded-xl hover:bg-[var(--color-surface-hover)] transition-colors shadow-sm"
-                >
-                  Sign In
-                </Link>
-              </div>
-            </motion.div>
-          </div>
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+              <Link
+                href="/register"
+                className="w-full sm:w-auto px-8 py-3.5 text-sm font-semibold text-white rounded-xl bg-slate-900 hover:bg-slate-800 transition-all shadow-[0_4px_14px_0_rgb(0,0,0,10%)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Get Started
+              </Link>
+              <Link
+                href="/login"
+                className="w-full sm:w-auto px-8 py-3.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl transition-all shadow-sm"
+              >
+                Sign In
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </section>
 

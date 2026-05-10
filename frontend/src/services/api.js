@@ -69,10 +69,12 @@ export async function loginUser(data) {
 
 // --- Tasks API ---
 
-export async function getTasks(status, search) {
+export async function getTasks(status, search, category, priority) {
   const params = new URLSearchParams();
   if (status) params.append('status', status);
   if (search) params.append('search', search);
+  if (category) params.append('category', category);
+  if (priority) params.append('priority', priority);
   const queryString = params.toString();
   return request(`/tasks${queryString ? `?${queryString}` : ''}`);
 }

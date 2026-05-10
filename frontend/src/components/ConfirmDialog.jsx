@@ -25,7 +25,7 @@ export default function ConfirmDialog({ isOpen, title, message, onConfirm, onCan
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+            className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6"
           >
             {/* Icon */}
             <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${danger ? 'bg-red-50' : 'bg-[var(--color-primary-light)]'} mb-4`}>

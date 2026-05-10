@@ -3,6 +3,7 @@ package com.organia.taskmanager.service;
 import com.organia.taskmanager.dto.TaskRequest;
 import com.organia.taskmanager.dto.TaskResponse;
 import com.organia.taskmanager.exception.ResourceNotFoundException;
+import com.organia.taskmanager.model.Priority;
 import com.organia.taskmanager.model.Task;
 import com.organia.taskmanager.model.TaskStatus;
 import com.organia.taskmanager.model.User;
@@ -35,6 +36,8 @@ public class TaskService {
                 .description(request.getDescription())
                 .status(request.getStatus())
                 .dueDate(request.getDueDate())
+                .category(request.getCategory())
+                .priority(request.getPriority() != null ? request.getPriority() : Priority.MEDIUM)
                 .user(user)
                 .build();
 
@@ -42,14 +45,18 @@ public class TaskService {
         return mapToResponse(saved);
     }
 
-    /** Get all tasks for the authenticated user, optionally filtered by status or search keyword. */
-    public List<TaskResponse> getAllTasks(User user, TaskStatus status, String search) {
+    /** Get all tasks for the authenticated user, optionally filtered by status, category, search keyword or priority. */
+    public List<TaskResponse> getAllTasks(User user, TaskStatus status, String category, String search, Priority priority) {
         List<Task> tasks;
 
         if (status != null) {
             tasks = taskRepository.findByUserAndStatusOrderByCreatedAtDesc(user, status);
+        } else if (category != null && !category.isBlank()) {
+            tasks = taskRepository.findByUserAndCategoryOrderByCreatedAtDesc(user, category);
         } else if (search != null && !search.isBlank()) {
             tasks = taskRepository.searchByTitle(user, search.trim());
+        } else if (priority != null) {
+            tasks = taskRepository.findByUserAndPriorityOrderByCreatedAtDesc(user, priority);
         } else {
             tasks = taskRepository.findByUserOrderByCreatedAtDesc(user);
         }
@@ -80,6 +87,10 @@ public class TaskService {
         task.setDescription(request.getDescription());
         task.setStatus(request.getStatus());
         task.setDueDate(request.getDueDate());
+        task.setCategory(request.getCategory());
+        if (request.getPriority() != null) {
+            task.setPriority(request.getPriority());
+        }
 
         Task updated = taskRepository.save(task);
         return mapToResponse(updated);
@@ -123,6 +134,8 @@ public class TaskService {
                 .dueDate(task.getDueDate())
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
+                .category(task.getCategory())
+                .priority(task.getPriority())
                 .build();
     }
 }

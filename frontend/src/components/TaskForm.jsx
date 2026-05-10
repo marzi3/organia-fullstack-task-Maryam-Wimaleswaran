@@ -15,6 +15,7 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
     description: '',
     status: 'TO_DO',
     dueDate: '',
+    priority: 'MEDIUM',
   });
   const [errors, setErrors] = useState({});
 
@@ -22,13 +23,14 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
   useEffect(() => {
     if (task) {
       setFormData({
-        title: task.title || '',
+        title: task.title ? task.title.replace(/\[CAT:.*?\]\s*/, '') : '',
         description: task.description || '',
         status: task.status || 'TO_DO',
         dueDate: task.dueDate || '',
+        priority: task.priority || 'MEDIUM',
       });
     } else {
-      setFormData({ title: '', description: '', status: 'TO_DO', dueDate: '' });
+      setFormData({ title: '', description: '', status: 'TO_DO', dueDate: '', priority: 'MEDIUM' });
     }
     setErrors({});
   }, [task, isOpen]);
@@ -74,6 +76,13 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
     { value: 'COMPLETED', label: 'Completed' },
   ];
 
+  const priorityOptions = [
+    { value: 'LOW', label: 'Low', color: 'bg-slate-400', activeColor: 'ring-slate-400/30 border-slate-400 text-slate-700 bg-slate-50' },
+    { value: 'MEDIUM', label: 'Medium', color: 'bg-indigo-400', activeColor: 'ring-indigo-400/30 border-indigo-400 text-indigo-700 bg-indigo-50' },
+    { value: 'HIGH', label: 'High', color: 'bg-amber-500', activeColor: 'ring-amber-500/30 border-amber-500 text-amber-700 bg-amber-50' },
+    { value: 'URGENT', label: 'Urgent', color: 'bg-red-500', activeColor: 'ring-red-500/30 border-red-500 text-red-700 bg-red-50' },
+  ];
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -92,7 +101,7 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+            className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
@@ -190,6 +199,30 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
                     {errors.dueDate && <p className="mt-1 text-xs text-[var(--color-danger)]">{errors.dueDate}</p>}
                   </div>
                 )}
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                  Priority
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {priorityOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, priority: opt.value }))}
+                      className={`relative flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border text-[10px] font-bold uppercase tracking-wider transition-all ${
+                        formData.priority === opt.value
+                          ? `${opt.activeColor} border-2`
+                          : 'border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)]'
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full mb-1 ${opt.color}`}></span>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Actions */}

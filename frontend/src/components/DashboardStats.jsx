@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 /**
  * Dashboard summary stats cards — shows total, to-do, in-progress, and completed counts.
- * Uses a responsive grid layout with gradient-accented card designs.
+ * Uses a responsive grid layout with premium glassmorphism card designs.
  */
 export default function DashboardStats({ summary }) {
   const cards = [
@@ -16,8 +16,8 @@ export default function DashboardStats({ summary }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
       ),
-      gradient: 'from-indigo-500 to-purple-500',
-      bg: 'bg-indigo-50',
+      gradient: 'from-indigo-600 to-purple-600',
+      bg: 'bg-indigo-50/50',
       iconColor: 'text-indigo-600',
     },
     {
@@ -28,8 +28,8 @@ export default function DashboardStats({ summary }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      gradient: 'from-amber-400 to-orange-500',
-      bg: 'bg-amber-50',
+      gradient: 'from-amber-500 to-orange-500',
+      bg: 'bg-amber-50/50',
       iconColor: 'text-amber-600',
     },
     {
@@ -41,7 +41,7 @@ export default function DashboardStats({ summary }) {
         </svg>
       ),
       gradient: 'from-blue-500 to-cyan-500',
-      bg: 'bg-blue-50',
+      bg: 'bg-blue-50/50',
       iconColor: 'text-blue-600',
     },
     {
@@ -53,7 +53,7 @@ export default function DashboardStats({ summary }) {
         </svg>
       ),
       gradient: 'from-emerald-500 to-teal-500',
-      bg: 'bg-emerald-50',
+      bg: 'bg-emerald-50/50',
       iconColor: 'text-emerald-600',
     },
   ];
@@ -65,18 +65,24 @@ export default function DashboardStats({ summary }) {
           key={card.label}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-          className="relative overflow-hidden bg-white rounded-2xl border border-[var(--color-border)] p-5 shadow-sm hover:shadow-md transition-shadow"
+          transition={{ delay: index * 0.1, duration: 0.4, ease: "easeOut" }}
+          whileHover={{ y: -5, scale: 1.02 }}
+          className="relative overflow-hidden glass glass-hover rounded-2xl p-6"
         >
-          {/* Gradient accent bar */}
-          <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient}`} />
+          {/* Subtle background glow based on card gradient */}
+          <div className={`absolute -bottom-8 -right-8 w-24 h-24 blur-3xl opacity-20 rounded-full pointer-events-none bg-gradient-to-br ${card.gradient}`} />
+          
+          {/* Top Gradient accent bar */}
+          <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${card.gradient}`} />
 
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between relative z-10">
             <div>
-              <p className="text-sm font-medium text-[var(--color-text-secondary)]">{card.label}</p>
-              <p className="mt-2 text-3xl font-bold text-[var(--color-text)]">{card.value}</p>
+              <p className="text-sm font-semibold tracking-wide text-[var(--color-text-secondary)] uppercase">{card.label}</p>
+              <p className={`mt-2 text-4xl font-extrabold bg-gradient-to-br ${card.gradient} bg-clip-text text-transparent drop-shadow-sm`}>
+                {card.value}
+              </p>
             </div>
-            <div className={`p-2.5 rounded-xl ${card.bg}`}>
+            <div className={`p-3 rounded-2xl ${card.bg} border border-[var(--color-border)] shadow-sm`}>
               <span className={card.iconColor}>{card.icon}</span>
             </div>
           </div>

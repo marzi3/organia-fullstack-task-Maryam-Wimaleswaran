@@ -1,5 +1,6 @@
 package com.organia.taskmanager.repository;
 
+import com.organia.taskmanager.model.Priority;
 import com.organia.taskmanager.model.Task;
 import com.organia.taskmanager.model.TaskStatus;
 import com.organia.taskmanager.model.User;
@@ -28,6 +29,12 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     /** Filter tasks by status for a user. */
     List<Task> findByUserAndStatusOrderByCreatedAtDesc(User user, TaskStatus status);
+
+    /** Filter tasks by category for a user. */
+    List<Task> findByUserAndCategoryOrderByCreatedAtDesc(User user, String category);
+
+    /** Filter tasks by priority for a user. */
+    List<Task> findByUserAndPriorityOrderByCreatedAtDesc(User user, Priority priority);
 
     /** Search tasks by title keyword for a user. */
     @Query("SELECT t FROM Task t WHERE t.user = :user AND LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ORDER BY t.createdAt DESC")

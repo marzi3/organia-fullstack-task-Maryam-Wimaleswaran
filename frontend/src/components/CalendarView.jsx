@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import TaskCard from './TaskCard';
 
-export default function CalendarView({ tasks, onTaskClick }) {
+export default function CalendarView({ tasks, onTaskClick, onStatusChange, onDelete, onToggleImportant }) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -12,65 +15,113 @@ export default function CalendarView({ tasks, onTaskClick }) {
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
-  return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-purple-100 shadow-xl shadow-purple-900/5 p-6 w-full max-w-full relative overflow-hidden">
-      {/* Decorative gradient blob */}
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-purple-400/10 blur-3xl pointer-events-none"></div>
+  const getDayTasks = (day) => tasks.filter(t => {
+    const d = new Date(t.dueDate || t.createdAt || Date.now());
+    return d.getDate() === day && d.getMonth() === currentDate.getMonth() && d.getFullYear() === currentDate.getFullYear();
+  });
 
-      <div className="flex items-center justify-between mb-8 relative z-10">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-[#5a32fa] to-blue-500 bg-clip-text text-transparent tracking-tight">
-          {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-        </h2>
-        <div className="flex gap-2">
-          <button onClick={prevMonth} className="p-2 hover:bg-purple-50 text-purple-700 rounded-full transition-colors"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg></button>
-          <button onClick={nextMonth} className="p-2 hover:bg-purple-50 text-purple-700 rounded-full transition-colors"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg></button>
+  const selectedTasks = getDayTasks(selectedDay);
+
+  return (
+    <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-purple-100 dark:border-gray-700 shadow-xl shadow-purple-900/5 p-3 md:p-4 relative overflow-hidden transition-colors">
+        {/* Decorative gradient blob */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-48 h-48 rounded-full bg-purple-400/10 blur-3xl pointer-events-none"></div>
+
+        <div className="flex items-center justify-between mb-4 relative z-10">
+          <h2 className="text-lg md:text-xl font-bold bg-gradient-to-r from-[#5a32fa] to-blue-500 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent tracking-tight">
+            {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </h2>
+          <div className="flex gap-1.5">
+            <button onClick={prevMonth} className="p-1.5 hover:bg-purple-50 dark:hover:bg-gray-700 text-purple-700 dark:text-purple-400 rounded-full transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg></button>
+            <button onClick={nextMonth} className="p-1.5 hover:bg-purple-50 dark:hover:bg-gray-700 text-purple-700 dark:text-purple-400 rounded-full transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg></button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 gap-1 md:gap-2 text-center mb-2 relative z-10">
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+            <div key={i} className="text-[10px] font-bold text-purple-400 dark:text-purple-500 uppercase tracking-widest">{d}</div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-7 gap-1 md:gap-2 relative z-10">
+          {blanks.map(i => <div key={`b-${i}`} className="h-14 md:h-20 rounded-lg bg-transparent"></div>)}
+          
+          {days.map(day => {
+            const dayTasks = getDayTasks(day);
+            const today = new Date();
+            const isToday = day === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
+            const isSelected = selectedDay === day;
+
+            return (
+              <motion.div 
+                key={day} 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedDay(day)}
+                className={`h-14 md:h-20 border rounded-lg p-1 md:p-1.5 transition-all duration-300 overflow-hidden flex flex-col cursor-pointer ${
+                  isSelected
+                    ? 'border-[#5a32fa] ring-2 ring-purple-100 dark:ring-purple-900/30 bg-purple-50/50 dark:bg-purple-900/20'
+                    : isToday 
+                      ? 'border-purple-300 bg-purple-50/30 dark:bg-purple-900/10' 
+                      : 'border-purple-50 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-500 bg-white/50 dark:bg-gray-800/40'
+                }`}
+              >
+                <div className={`text-[10px] md:text-[11px] font-bold mb-0.5 md:mb-1 ${isSelected || isToday ? 'text-[#5a32fa] dark:text-purple-400' : 'text-slate-700 dark:text-gray-300'}`}>
+                  {day}
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-wrap gap-0.5 items-start content-start">
+                  {dayTasks.map((t, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`w-1.5 h-1.5 rounded-full ${t.status === 'COMPLETED' ? 'bg-green-400' : 'bg-[#5a32fa]'}`}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-3 text-center mb-4 relative z-10">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-          <div key={d} className="text-xs font-bold text-purple-400 uppercase tracking-widest">{d}</div>
-        ))}
-      </div>
-      
-      <div className="grid grid-cols-7 gap-3 relative z-10">
-        {blanks.map(i => <div key={`b-${i}`} className="h-32 rounded-xl bg-transparent"></div>)}
-        
-        {days.map(day => {
-          const dayTasks = tasks.filter(t => {
-            const d = new Date(t.createdAt || Date.now());
-            return d.getDate() === day && d.getMonth() === currentDate.getMonth() && d.getFullYear() === currentDate.getFullYear();
-          });
+      {/* Selected Day Tasks Display */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={selectedDay}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="space-y-3"
+        >
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#5a32fa]"></span>
+              Tasks for {currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }).replace(/\d+$/, selectedDay)}
+            </h3>
+            <span className="text-[10px] font-bold text-[#5a32fa] bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded-full border border-purple-100 dark:border-purple-800">
+              {selectedTasks.length} Tasks
+            </span>
+          </div>
 
-          const today = new Date();
-          const isToday = day === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
-
-          return (
-            <div 
-              key={day} 
-              className={`h-32 border rounded-xl p-3 transition-all duration-300 overflow-hidden flex flex-col ${
-                isToday ? 'border-purple-500 bg-purple-50 shadow-sm shadow-purple-200/50 scale-[1.02]' : 'border-purple-50 hover:border-purple-300 hover:shadow-md hover:bg-white bg-white/50'
-              }`}
-            >
-              <div className={`text-sm font-bold mb-2 ${isToday ? 'text-[#5a32fa]' : 'text-slate-700'}`}>
-                {day}
+          <div className="flex flex-col gap-1">
+            {selectedTasks.length > 0 ? (
+              selectedTasks.map(task => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onEdit={onTaskClick}
+                  onStatusChange={onStatusChange}
+                  onDelete={onDelete}
+                  onToggleImportant={onToggleImportant}
+                />
+              ))
+            ) : (
+              <div className="py-8 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-2xl">
+                <p className="text-sm text-gray-400 dark:text-gray-500">No tasks scheduled for this day.</p>
               </div>
-              <div className="space-y-1.5 flex-1 overflow-y-auto custom-scrollbar">
-                {dayTasks.map((t, idx) => (
-                  <div 
-                    key={idx} 
-                    onClick={() => onTaskClick && onTaskClick(t)}
-                    className="w-full bg-white border border-blue-100 text-blue-900 text-[11px] px-2 py-1 rounded-md shadow-sm truncate font-medium flex items-center gap-1.5 cursor-pointer hover:bg-blue-50"
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${t.status === 'COMPLETED' ? 'bg-green-400' : 'bg-blue-500'}`}></span>
-                    {t.title}
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            )}
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

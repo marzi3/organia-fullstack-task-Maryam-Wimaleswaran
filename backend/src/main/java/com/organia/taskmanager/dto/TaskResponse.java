@@ -1,5 +1,6 @@
 package com.organia.taskmanager.dto;
 
+import com.organia.taskmanager.model.Priority;
 import com.organia.taskmanager.model.TaskStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,4 +25,6 @@ public class TaskResponse {
     private LocalDate dueDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String category;
+    private Priority priority;
 }

@@ -37,6 +37,13 @@ public class Task {
     @Column(name = "due_date")
     private LocalDate dueDate;
 
+    @Column
+    private String category;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Priority priority = Priority.MEDIUM;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

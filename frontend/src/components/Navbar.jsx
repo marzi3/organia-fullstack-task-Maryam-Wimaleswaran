@@ -18,14 +18,14 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href={isAuthenticated ? '/dashboard' : '/'} className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-primary">
-              <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <Link href={isAuthenticated ? '/dashboard' : '/'} className="flex items-center gap-2 group">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 group-hover:bg-indigo-700 transition-colors shadow-sm">
+              <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
-            <span className="text-lg font-bold text-[var(--color-text)]">
-              Organia<span className="text-[var(--color-primary)]">Tasks</span>
+            <span className="text-lg font-bold text-slate-900 tracking-tight">
+              Organia<span className="text-indigo-600">Tasks</span>
             </span>
           </Link>
 
@@ -33,15 +33,15 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <>
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--color-primary-light)]">
-                  <div className="h-7 w-7 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-bold">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200">
+                  <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">
                     {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
-                  <span className="text-sm font-medium text-[var(--color-text)]">{user?.name}</span>
+                  <span className="text-sm font-semibold text-slate-700">{user?.name}</span>
                 </div>
                 <button
                   onClick={logout}
-                  className="px-4 py-2 text-sm font-medium text-[var(--color-danger)] hover:bg-red-50 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   Logout
                 </button>
@@ -50,13 +50,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/register"
-                  className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl gradient-primary hover:opacity-90 transition-opacity shadow-md"
+                  className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl bg-slate-900 hover:bg-slate-800 transition-all shadow-sm"
                 >
                   Get Started
                 </Link>

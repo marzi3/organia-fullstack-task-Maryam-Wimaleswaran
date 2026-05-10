@@ -3,6 +3,7 @@ package com.organia.taskmanager.controller;
 import com.organia.taskmanager.dto.StatusUpdateRequest;
 import com.organia.taskmanager.dto.TaskRequest;
 import com.organia.taskmanager.dto.TaskResponse;
+import com.organia.taskmanager.model.Priority;
 import com.organia.taskmanager.model.TaskStatus;
 import com.organia.taskmanager.model.User;
 import com.organia.taskmanager.service.TaskService;
@@ -37,14 +38,16 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /** Get all tasks with optional status filter and search. */
+    /** Get all tasks with optional status filter, category filter, and search. */
     @GetMapping
     public ResponseEntity<List<TaskResponse>> getAllTasks(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) TaskStatus status,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Priority priority
     ) {
-        List<TaskResponse> tasks = taskService.getAllTasks(user, status, search);
+        List<TaskResponse> tasks = taskService.getAllTasks(user, status, category, search, priority);
         return ResponseEntity.ok(tasks);
     }
 

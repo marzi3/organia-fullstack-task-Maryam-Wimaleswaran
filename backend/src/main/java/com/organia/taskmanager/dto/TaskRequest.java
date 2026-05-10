@@ -1,5 +1,6 @@
 package com.organia.taskmanager.dto;
 
+import com.organia.taskmanager.model.Priority;
 import com.organia.taskmanager.model.TaskStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,4 +27,8 @@ public class TaskRequest {
     private TaskStatus status;
 
     private LocalDate dueDate;
+
+    private String category;
+
+    private Priority priority;
 }
