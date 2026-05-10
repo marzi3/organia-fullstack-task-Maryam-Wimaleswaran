@@ -14,6 +14,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import CalendarView from '@/components/CalendarView';
 import KanbanView from '@/components/KanbanView';
+import AnalyticsView from '@/components/AnalyticsView';
 
 /**
  * Main dashboard page — protected route.
@@ -92,8 +93,11 @@ export default function DashboardPage() {
     try {
       const validBackendFilter = ['TO_DO', 'IN_PROGRESS', 'COMPLETED'].includes(statusFilter) ? statusFilter : undefined;
       const priorityFilter = statusFilter === 'IMPORTANT' ? 'URGENT' : undefined;
+      // For TODAY view, we want to fetch all active tasks and filter them on the client
+      const fetchStatus = statusFilter === 'TODAY' ? undefined : validBackendFilter;
+      
       const [tasksData, summaryData] = await Promise.all([
-        getTasks(validBackendFilter, debouncedSearch || undefined, selectedCategory || undefined, priorityFilter),
+        getTasks(fetchStatus, debouncedSearch || undefined, selectedCategory || undefined, priorityFilter),
         getTaskSummary(),
       ]);
       setTasks(tasksData);
@@ -218,14 +222,22 @@ export default function DashboardPage() {
   let filteredTasks = [...tasks];
   if (statusFilter === 'IMPORTANT') {
     filteredTasks = filteredTasks.filter(t => t.priority === 'URGENT');
-  } else if (statusFilter === 'TO_DO') {
-    // "Today" logic: tasks without a dueDate OR dueDate is today
+  } else if (statusFilter === 'TODAY') {
+    // "Today" logic: tasks due today OR overdue (non-completed)
     filteredTasks = filteredTasks.filter(t => {
-      if (!t.dueDate) return true;
+      if (t.status === 'COMPLETED') return false;
+      if (!t.dueDate) return true; // Show tasks without dates in today by default as "inbox"
+      
       const d = new Date(t.dueDate);
       const today = new Date();
-      return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+      today.setHours(0, 0, 0, 0);
+      const taskDate = new Date(d);
+      taskDate.setHours(0, 0, 0, 0);
+      
+      return taskDate <= today; // Include today and overdue
     });
+  } else if (statusFilter === 'TO_DO') {
+    filteredTasks = filteredTasks.filter(t => t.status === 'TO_DO');
   } else if (statusFilter === 'COMPLETED') {
     filteredTasks = filteredTasks.filter(t => t.status === 'COMPLETED');
   } else if (selectedCategory) {
@@ -400,16 +412,16 @@ export default function DashboardPage() {
               </button>
 
               <button
-                onClick={() => { setStatusFilter('TO_DO'); setCurrentView('tasks'); setSelectedCategory(null); setIsSidebarOpen(false); }}
+                onClick={() => { setStatusFilter('TODAY'); setCurrentView('tasks'); setSelectedCategory(null); setIsSidebarOpen(false); }}
                 className={`w-full flex items-center justify-between px-4 py-3 border-l-2 transition-colors ${
-                  statusFilter === 'TO_DO' ? 'bg-purple-50 dark:bg-purple-900/30 border-[#5a32fa] text-[#5a32fa] dark:text-purple-400' : 'border-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  statusFilter === 'TODAY' ? 'bg-purple-50 dark:bg-purple-900/30 border-[#5a32fa] text-[#5a32fa] dark:text-purple-400' : 'border-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
                 <div className="flex items-center gap-4">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                   <span className="font-medium">Today</span>
                 </div>
-                {summary?.todo > 0 && <span className="text-xs font-semibold">{summary.todo}</span>}
+                {(summary?.todo > 0 || summary?.inProgress > 0) && <span className="text-xs font-semibold">{(summary?.todo || 0) + (summary?.inProgress || 0)}</span>}
               </button>
 
               <button
@@ -445,6 +457,18 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-4">
                   <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                   <span className="font-medium">Urgent</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => { setCurrentView('insights'); setStatusFilter(''); setIsSidebarOpen(false); setSelectedCategory(null); }}
+                className={`w-full flex items-center justify-between px-4 py-3 border-l-2 transition-colors ${
+                  currentView === 'insights' ? 'bg-purple-50 dark:bg-purple-900/30 border-[#5a32fa] text-[#5a32fa] dark:text-purple-400' : 'border-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                  <span className="font-medium">Insights</span>
                 </div>
               </button>
             </div>
@@ -517,6 +541,8 @@ export default function DashboardPage() {
                     'Calendar'
                   ) : currentView === 'kanban' ? (
                     'Board'
+                  ) : currentView === 'insights' ? (
+                    'Insights'
                   ) : selectedCategory ? (
                     selectedCategory
                   ) : statusFilter === 'TO_DO' ? (
@@ -762,6 +788,8 @@ export default function DashboardPage() {
                 onStatusChange={handleStatusChange}
                 onTaskClick={openEditForm}
               />
+            ) : currentView === 'insights' ? (
+              <AnalyticsView tasks={tasks} />
             ) : isLoadingTasks ? (
               <LoadingSpinner message="Loading..." />
             ) : sortedTasks.length === 0 ? (
