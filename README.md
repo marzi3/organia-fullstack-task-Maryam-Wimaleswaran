@@ -1,6 +1,6 @@
 # 🗂️ Organia Task Manager
 
-> A full-stack Task Management Web Application built for the **Organia Innovations Labs Full Stack Developer Internship Assessment**.
+> A high-performance, full-stack Task Management Web Application.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-green?logo=spring)
@@ -11,7 +11,7 @@
 
 ## 📋 Project Overview
 
-Organia Task Manager is a modern, production-ready task management application that enables users to create, organize, and track tasks through an intuitive dashboard. Built with a **Next.js 16** frontend and **Spring Boot 3.2** backend, it features secure JWT authentication, real-time search, priority management, multiple views (List, Calendar, Kanban Board, Insights), dark mode, and full CRUD operations with subtask support.
+Organia Task Manager is a modern, production-ready task management application that enables users to create, organize, and track tasks through an intuitive dashboard. Built with a **Next.js 16** frontend and **Spring Boot 3.2** backend, it features secure JWT authentication, real-time search, priority management, multiple views (List, Calendar, Kanban Board, Insights, Admin Panel), and full CRUD operations.
 
 ---
 
@@ -210,6 +210,13 @@ Base URL: `http://localhost:8080` (local) or your deployed backend URL.
 | PUT | `/tasks/{id}` | Update a task |
 | PATCH | `/tasks/{id}/status` | Update task status only |
 | DELETE | `/tasks/{id}` | Delete a task |
+
+### Administration (Requires `ROLE_ADMIN`)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/admin/users` | List all users with task counts |
+| DELETE | `/admin/users/{id}` | Permanently delete a user account |
 
 **Query Parameters for `GET /tasks`:**
 

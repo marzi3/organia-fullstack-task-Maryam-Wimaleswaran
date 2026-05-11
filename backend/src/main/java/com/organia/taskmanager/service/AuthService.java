@@ -41,7 +41,7 @@ public class AuthService {
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
+                .role(request.getEmail().equalsIgnoreCase("admin@organia.com") ? Role.ADMIN : Role.USER)
                 .build();
 
         userRepository.save(user);

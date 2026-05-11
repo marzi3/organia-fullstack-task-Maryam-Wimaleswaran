@@ -39,6 +39,14 @@ export default function Navbar() {
                   </div>
                   <span className="text-sm font-semibold text-slate-700">{user?.name}</span>
                 </div>
+                {user?.role === 'ADMIN' && (
+                  <Link
+                    href="/admin"
+                    className="px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                  >
+                    Admin Panel
+                  </Link>
+                )}
                 <button
                   onClick={logout}
                   className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -109,6 +117,15 @@ export default function Navbar() {
                   >
                     Dashboard
                   </Link>
+                  {user?.role === 'ADMIN' && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-2 text-sm font-medium text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors"
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
                   <button
                     onClick={() => { logout(); setMobileMenuOpen(false); }}
                     className="w-full text-left px-3 py-2 text-sm font-medium text-[var(--color-danger)] rounded-lg hover:bg-red-50 transition-colors"
