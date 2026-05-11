@@ -13,7 +13,7 @@ export default function EmptyState({ view, onCreateTask }) {
   const messages = {
     IMPORTANT: { title: 'No urgent tasks', desc: 'You have no tasks marked as urgent. Nice work!', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
     TODAY: { title: 'Nothing due today', desc: 'You\'re all caught up for today. Enjoy your free time!', icon: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z' },
-    COMPLETED: { title: 'No completed tasks yet ???', desc: 'You haven\'t completed any tasks yet. Tick something off your list to see them here!', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+    COMPLETED: { title: 'A clean slate of achievements', desc: 'You haven\'t marked any tasks as finished yet. Conquer your first goal and start building your streak of success!', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
     TO_DO: { title: 'No to-do tasks', desc: 'All your tasks are in progress or completed!', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
     IN_PROGRESS: { title: 'Nothing in progress', desc: 'Start working on a task to see it here.', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
   };
