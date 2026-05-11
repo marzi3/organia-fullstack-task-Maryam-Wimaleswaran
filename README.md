@@ -127,9 +127,24 @@ Frontend starts at **http://localhost:3000**
 
 | Service | URL |
 |---|---|
-| **Frontend** | *Add your Vercel URL here* |
+| **Frontend** | *Add your Vercel or Netlify URL here* |
 | **Backend** | *Add your Render URL here* |
 
+---
+
+## ☁️ Deployment Guide
+
+### Frontend (Vercel)
+1. Import repository to Vercel.
+2. Set **Root Directory** to `frontend`.
+3. Add Environment Variable `NEXT_PUBLIC_API_BASE_URL` pointing to your Render backend.
+4. Deploy!
+
+### Backend (Render)
+1. Create a New Web Service.
+2. Build Command: `./mvnw clean package -DskipTests`
+3. Start Command: `java -jar target/*.jar`
+4. Add Database Environment Variables.
 ---
 
 ## 🎯 Demo Credentials
