@@ -52,6 +52,7 @@ export default function CalendarView({ tasks, onTaskClick, onStatusChange, onDel
             const today = new Date();
             const isToday = day === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
             const isSelected = selectedDay === day;
+            const isPast = !isToday && new Date(currentDate.getFullYear(), currentDate.getMonth(), day) < new Date(new Date().setHours(0,0,0,0));
 
             return (
               <motion.div 
@@ -63,19 +64,25 @@ export default function CalendarView({ tasks, onTaskClick, onStatusChange, onDel
                     ? 'border-[#5a32fa] ring-2 ring-purple-100 dark:ring-purple-900/30 bg-purple-50/50 dark:bg-purple-900/20'
                     : isToday 
                       ? 'border-purple-300 bg-purple-50/30 dark:bg-purple-900/10' 
-                      : 'border-purple-50 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-500 bg-white/50 dark:bg-gray-800/40'
+                      : isPast
+                        ? 'border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/10 opacity-60'
+                        : 'border-purple-50 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-500 bg-white/50 dark:bg-gray-800/40'
                 }`}
               >
                 <div className={`text-[10px] md:text-[11px] font-bold mb-0.5 md:mb-1 ${isSelected || isToday ? 'text-[#5a32fa] dark:text-purple-400' : 'text-slate-700 dark:text-gray-300'}`}>
                   {day}
                 </div>
                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-wrap gap-0.5 items-start content-start">
-                  {dayTasks.map((t, idx) => (
-                    <div 
-                      key={idx} 
-                      className={`w-1.5 h-1.5 rounded-full ${t.status === 'COMPLETED' ? 'bg-green-400' : 'bg-[#5a32fa]'}`}
-                    />
-                  ))}
+                  {dayTasks.map((t, idx) => {
+                    const dotColor = t.status === 'COMPLETED' ? 'bg-green-400'
+                      : t.priority === 'URGENT' ? 'bg-red-500'
+                      : t.priority === 'HIGH' ? 'bg-orange-400'
+                      : t.priority === 'MEDIUM' ? 'bg-[#5a32fa]'
+                      : 'bg-gray-400';
+                    return (
+                      <div key={idx} className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                    );
+                  })}
                 </div>
               </motion.div>
             );

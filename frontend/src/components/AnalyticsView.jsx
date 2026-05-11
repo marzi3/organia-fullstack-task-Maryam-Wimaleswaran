@@ -126,7 +126,7 @@ export default function AnalyticsView({ tasks }) {
           <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight mb-6">Upcoming Deadlines</h3>
           <div className="space-y-4">
             {stats.upcomingDeadlines.length > 0 ? stats.upcomingDeadlines.map((task, i) => (
-              <div key={task.id} className="group flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-600">
+              <div key={task.id} className="group flex items-center justify-between p-3 rounded-lg border border-transparent">
                 <div className="flex items-center gap-3">
                   <div className={`w-1.5 h-1.5 rounded-full ${task.priority === 'URGENT' ? 'bg-red-500' : 'bg-blue-400'}`} />
                   <div>
@@ -136,7 +136,6 @@ export default function AnalyticsView({ tasks }) {
                     </p>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
               </div>
             )) : (
               <div className="h-40 flex flex-col items-center justify-center text-center">
@@ -145,32 +144,11 @@ export default function AnalyticsView({ tasks }) {
               </div>
             )}
           </div>
-          {stats.upcomingDeadlines.length > 0 && (
-            <button className="w-full mt-6 py-2 text-[10px] font-bold uppercase tracking-widest text-[#5a32fa] border border-[#5a32fa]/20 rounded-lg hover:bg-purple-50 transition-colors">
-              View All Deadlines
-            </button>
-          )}
         </motion.div>
       </div>
 
       {/* Bottom Insights Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <motion.div 
-           initial={{ opacity: 0, y: 10 }}
-           animate={{ opacity: 1, y: 0 }}
-           className="bg-gradient-to-br from-[#5a32fa]/5 to-transparent border border-[#5a32fa]/10 p-6 rounded-xl"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <CheckCircle2 className="w-4 h-4 text-[#5a32fa]" />
-            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">Efficiency Forecast</h4>
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            Based on your current completion rate of <span className="font-bold text-gray-900 dark:text-white">{stats.productivityScore}%</span>, 
-            you are on track to clear your backlog within <span className="font-bold text-[#5a32fa]">4 days</span>. 
-            Prioritize the {stats.urgent} urgent items to optimize your critical path.
-          </p>
-        </motion.div>
-
+      <div className="grid grid-cols-1 gap-6">
         <motion.div 
            initial={{ opacity: 0, y: 10 }}
            animate={{ opacity: 1, y: 0 }}

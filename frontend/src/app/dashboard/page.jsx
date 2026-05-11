@@ -15,8 +15,6 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import CalendarView from '@/components/CalendarView';
 import KanbanView from '@/components/KanbanView';
 import AnalyticsView from '@/components/AnalyticsView';
-import CommandPalette from '@/components/CommandPalette';
-
 /**
  * Main dashboard page — protected route.
  * Displays task summary, search/filter controls, and task list with full CRUD operations.
@@ -44,6 +42,7 @@ export default function DashboardPage() {
   
   // New features state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [currentView, setCurrentView] = useState('tasks'); // 'tasks', 'calendar'
   const [customCategories, setCustomCategories] = useState(['Work', 'Personal']);
@@ -64,29 +63,18 @@ export default function DashboardPage() {
   const [quickDesc, setQuickDesc] = useState('');
   const [quickDate, setQuickDate] = useState('');
   const [quickPriority, setQuickPriority] = useState('MEDIUM');
+  const [quickSubTasks, setQuickSubTasks] = useState([]);
+  const [quickNewSubTask, setQuickNewSubTask] = useState('');
+  const [quickCategory, setQuickCategory] = useState('');
   const [isQuickAddActive, setIsQuickAddActive] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [filterOption, setFilterOption] = useState('all'); // all, active, completed
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-
   // Redirect if unauthenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push('/login');
     }
   }, [isAuthenticated, authLoading, router]);
-
-  // Global Keyboard Shortcuts (Cmd+K)
-  useEffect(() => {
-    const handleGlobalKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsCommandPaletteOpen(prev => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
 
   // Debounce search input
   useEffect(() => {
@@ -102,22 +90,19 @@ export default function DashboardPage() {
 
   /** Fetch tasks and summary data. */
   const fetchData = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (authLoading || !isAuthenticated) return;
     setIsLoadingTasks(true);
     try {
-      const validBackendFilter = ['TO_DO', 'IN_PROGRESS', 'COMPLETED'].includes(statusFilter) ? statusFilter : undefined;
-      const priorityFilter = statusFilter === 'IMPORTANT' ? 'URGENT' : undefined;
-      // For TODAY view, we want to fetch all active tasks and filter them on the client
-      const fetchStatus = statusFilter === 'TODAY' ? undefined : validBackendFilter;
-      
+      // Fetch all tasks so sidebar counts are accurate globally.
+      // We still pass debouncedSearch if we want server-side search.
       const [tasksData, summaryData] = await Promise.all([
-        getTasks(fetchStatus, debouncedSearch || undefined, selectedCategory || undefined, priorityFilter),
+        getTasks(undefined, debouncedSearch || undefined, undefined, undefined),
         getTaskSummary(),
       ]);
       setTasks(tasksData);
       setSummary(summaryData);
     } catch (err) {
-      if (err.status === 401) {
+      if (err.status === 401 || err.status === 403) {
         logout();
         return;
       }
@@ -125,7 +110,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoadingTasks(false);
     }
-  }, [isAuthenticated, statusFilter, debouncedSearch, selectedCategory, logout]);
+  }, [authLoading, isAuthenticated, statusFilter, debouncedSearch, selectedCategory, logout]);
 
   useEffect(() => {
     fetchData();
@@ -137,23 +122,31 @@ export default function DashboardPage() {
     const submissionData = { ...data };
     const todayStr = new Date().toISOString().split('T')[0];
     
+    // Validate due date - prevent past dates for new tasks
+    if (submissionData.dueDate && !editingTask) {
+      const dueDate = new Date(submissionData.dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (dueDate < today) {
+        showToast('Due date cannot be in the past', 'error');
+        setIsFormLoading(false);
+        return;
+      }
+    }
+    
     // Handle automatic date and category assignment for new tasks
     if (!editingTask) {
       if (selectedCategory && !submissionData.category) {
         submissionData.category = selectedCategory;
       }
-      if (statusFilter === 'TO_DO' || !submissionData.dueDate) {
+      if (statusFilter === 'TODAY' || !submissionData.dueDate) {
         submissionData.dueDate = todayStr;
       }
     }
       
-    // Fallback: Embed category in title if backend isn't updated
-    if (!editingTask && submissionData.category) {
-      submissionData.title = `[CAT:${submissionData.category}] ${submissionData.title}`;
-    } else if (editingTask && submissionData.category) {
-      // Preserve or update tag
-      const cleanTitle = submissionData.title.replace(/\[CAT:.*?\]\s*/, '');
-      submissionData.title = `[CAT:${submissionData.category}] ${cleanTitle}`;
+    // Strip any legacy [CAT:] tags from the title before saving
+    if (submissionData.title) {
+      submissionData.title = submissionData.title.replace(/\[CAT:.*?\]\s*/, '');
     }
 
     try {
@@ -178,15 +171,30 @@ export default function DashboardPage() {
   const handleStatusChange = async (taskId, newStatus, newDate = null) => {
     try {
       const taskToUpdate = tasks.find(t => t.id === taskId);
-      const updatedData = { 
-        ...taskToUpdate, 
+      if (!taskToUpdate) return;
+
+      // Build a clean payload matching backend TaskRequest DTO exactly
+      const payload = {
+        title: taskToUpdate.title,
+        description: taskToUpdate.description || null,
         status: newStatus,
-        dueDate: newDate || taskToUpdate.dueDate 
+        dueDate: newDate || taskToUpdate.dueDate || null,
+        priority: taskToUpdate.priority || 'MEDIUM',
+        category: taskToUpdate.category || null,
+        subTasks: (taskToUpdate.subTasks || []).map(st => ({
+          id: st.id || null,
+          title: st.title,
+          completed: st.completed,
+        })),
       };
-      await updateTask(taskId, updatedData);
+
+      await updateTask(taskId, payload);
+      if (newDate) {
+        showToast('Task rescheduled to today');
+      }
       await fetchData();
     } catch (err) {
-      showToast('Failed to update task', 'error');
+      showToast(err.message || 'Failed to update task', 'error');
     }
   };
 
@@ -194,11 +202,24 @@ export default function DashboardPage() {
   const handleToggleImportant = async (task) => {
     try {
       const isUrgent = task.priority === 'URGENT';
-      await updateTask(task.id, { ...task, priority: isUrgent ? 'MEDIUM' : 'URGENT' });
+      const payload = {
+        title: task.title,
+        description: task.description || null,
+        status: task.status,
+        dueDate: task.dueDate || null,
+        priority: isUrgent ? 'MEDIUM' : 'URGENT',
+        category: task.category || null,
+        subTasks: (task.subTasks || []).map(st => ({
+          id: st.id || null,
+          title: st.title,
+          completed: st.completed,
+        })),
+      };
+      await updateTask(task.id, payload);
       showToast(isUrgent ? 'Priority set to Medium' : 'Priority set to Urgent');
       await fetchData();
     } catch (err) {
-      showToast('Failed to update task', 'error');
+      showToast(err.message || 'Failed to update task', 'error');
     }
   };
 
@@ -225,6 +246,38 @@ export default function DashboardPage() {
     setIsFormOpen(true);
   };
 
+  /** Toggle a subtask's completion inline without opening the modal. */
+  const handleSubTaskToggle = async (task, subTaskIndex) => {
+    // Optimistically update local state so the UI doesn't re-render/collapse
+    const updatedSubTasks = (task.subTasks || []).map((st, idx) => ({
+      id: st.id || null,
+      title: st.title,
+      completed: idx === subTaskIndex ? !st.completed : st.completed,
+    }));
+    setTasks(prev => prev.map(t => 
+      t.id === task.id ? { ...t, subTasks: updatedSubTasks } : t
+    ));
+
+    try {
+      const payload = {
+        title: task.title,
+        description: task.description || null,
+        status: task.status,
+        dueDate: task.dueDate || null,
+        priority: task.priority || 'MEDIUM',
+        category: task.category || null,
+        subTasks: updatedSubTasks,
+      };
+      await updateTask(task.id, payload);
+    } catch (err) {
+      // Revert on failure
+      setTasks(prev => prev.map(t => 
+        t.id === task.id ? { ...t, subTasks: task.subTasks } : t
+      ));
+      showToast('Failed to update subtask', 'error');
+    }
+  };
+
   const statusFilterOptions = [
     { value: '', label: 'All Tasks' },
     { value: 'TO_DO', label: 'To Do' },
@@ -237,10 +290,9 @@ export default function DashboardPage() {
   if (statusFilter === 'IMPORTANT') {
     filteredTasks = filteredTasks.filter(t => t.priority === 'URGENT');
   } else if (statusFilter === 'TODAY') {
-    // "Today" logic: tasks due today OR overdue (non-completed)
+    // "Today" logic: tasks due today OR overdue — include completed tasks due today
     filteredTasks = filteredTasks.filter(t => {
-      if (t.status === 'COMPLETED') return false;
-      if (!t.dueDate) return true; // Show tasks without dates in today by default as "inbox"
+      if (!t.dueDate) return t.status !== 'COMPLETED'; // Inbox: show undated non-completed
       
       const d = new Date(t.dueDate);
       const today = new Date();
@@ -248,7 +300,9 @@ export default function DashboardPage() {
       const taskDate = new Date(d);
       taskDate.setHours(0, 0, 0, 0);
       
-      return taskDate <= today; // Include today and overdue
+      if (taskDate.getTime() === today.getTime()) return true; // Today's tasks (including completed)
+      if (t.status !== 'COMPLETED' && taskDate < today) return true; // Overdue non-completed
+      return false;
     });
   } else if (statusFilter === 'TO_DO') {
     filteredTasks = filteredTasks.filter(t => t.status === 'TO_DO');
@@ -290,7 +344,14 @@ export default function DashboardPage() {
       {/* Top Header - MS To Do Blue Bar */}
       <header className="flex-shrink-0 h-12 bg-[#5a32fa] flex items-center justify-between px-3 md:px-4 text-white z-40">
         <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1.5 hover:bg-white/10 rounded">
+          <button onClick={() => {
+            // On mobile: toggle sidebar open/close. On desktop: toggle collapse.
+            if (window.innerWidth < 768) {
+              setIsSidebarOpen(!isSidebarOpen);
+            } else {
+              setIsSidebarCollapsed(prev => !prev);
+            }
+          }} className="p-1.5 hover:bg-white/10 rounded">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -313,58 +374,69 @@ export default function DashboardPage() {
               className="block w-full pl-9 pr-12 py-1.5 border-transparent rounded bg-white dark:bg-gray-800 text-[#5a32fa] dark:text-purple-400 placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-purple-500 focus:border-transparent sm:text-sm"
               placeholder="Search tasks..."
             />
-            <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-              <span className="text-[9px] font-bold text-[#5a32fa]/60 dark:text-purple-400/60 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-600">
-                ⌘K
-              </span>
-            </div>
+
           </div>
         </div>
 
         {/* Right Actions */}
         <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 justify-end">
-          {/* Settings */}
-          <div className="relative">
-            <button onClick={() => setShowSettings(!showSettings)} className="p-1.5 hover:bg-white/10 rounded">
+          {/* Dark Mode Toggle (Sun/Moon) */}
+          <button 
+            onClick={() => setUserSettings(s => ({...s, darkMode: !s.darkMode}))}
+            className="p-1.5 hover:bg-white/10 rounded transition-all"
+            title={userSettings.darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            {userSettings.darkMode ? (
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-            </button>
-            {showSettings && (
-              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-2 z-50 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
-                <div className="px-4 py-2 text-sm font-bold text-[#5a32fa] dark:text-purple-400">Settings</div>
-                <div className="px-4 py-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Dark Mode</span>
-                    <button 
-                      onClick={() => setUserSettings(s => ({...s, darkMode: !s.darkMode}))}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${userSettings.darkMode ? 'bg-[#5a32fa]' : 'bg-gray-300'}`}
-                    >
-                      <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${userSettings.darkMode ? 'translate-x-4' : 'translate-x-1'}`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
             )}
-          </div>
-
+          </button>
 
           {/* Notifications */}
           <div className="relative">
             <button onClick={() => setShowNotifications(!showNotifications)} className="p-1.5 hover:bg-white/10 rounded relative">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
-              {summary?.todo > 0 && <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#5a32fa]" />}
+              {(() => { const oc = tasks.filter(t => { if (t.status === 'COMPLETED' || !t.dueDate) return false; return new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0)); }).length; return oc > 0 ? <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white ring-2 ring-[#5a32fa] px-1">{oc}</span> : null; })()}
             </button>
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-md shadow-lg py-2 z-50 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700">
-                <div className="px-4 py-2 text-sm font-semibold border-b border-gray-100 dark:border-gray-700">Notifications</div>
-                <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                  {summary?.todo > 0 ? `You have ${summary.todo} incomplete tasks.` : 'All caught up!'}
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl z-50 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 overflow-hidden">
+                  <div className="px-4 py-3 text-sm font-bold border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    <span>Notifications</span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Live</span>
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50">
+                    {(() => {
+                      const overdueTasks = tasks.filter(t => {
+                        if (t.status === 'COMPLETED' || !t.dueDate) return false;
+                        return new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
+                      });
+                      if (overdueTasks.length === 0) {
+                        return <div className="px-4 py-8 text-center text-gray-400"><svg className="w-8 h-8 mx-auto mb-2 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><p className="text-sm font-medium">All caught up!</p></div>;
+                      }
+                      return overdueTasks.map(t => (
+                        <div key={t.id} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer" onClick={() => { openEditForm(t); setShowNotifications(false); }}>
+                          <div className="flex items-start gap-3">
+                            <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{t.title?.replace(/\[CAT:.*?\]\s*/, '')}</p>
+                              <p className="text-[11px] text-red-500 font-medium mt-0.5">Overdue — was due {new Date(t.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 
@@ -405,7 +477,7 @@ export default function DashboardPage() {
         </AnimatePresence>
 
         {/* Sidebar */}
-        <aside className={`${isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full md:w-[280px] md:translate-x-0'} flex-shrink-0 bg-[#faf9f8] dark:bg-gray-900 border-r border-[#e1dfdd] dark:border-gray-800 flex flex-col absolute md:relative z-40 h-full transition-all duration-300 overflow-hidden`}>
+        <aside className={`${isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full md:translate-x-0'} ${isSidebarCollapsed ? 'md:w-[60px]' : 'md:w-[280px]'} flex-shrink-0 bg-[#faf9f8] dark:bg-gray-900 border-r border-[#e1dfdd] dark:border-gray-800 flex flex-col absolute md:relative z-40 h-full transition-all duration-300 overflow-hidden`}>
           <div className="p-3 md:hidden flex justify-between items-center border-b border-gray-200 dark:border-gray-800">
             <span className="font-bold text-purple-600">Menu</span>
             <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded">
@@ -424,10 +496,10 @@ export default function DashboardPage() {
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <svg className="w-5 h-5 text-[#5a32fa]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                  <span className="font-medium">Tasks</span>
+                  <svg className="w-5 h-5 text-[#5a32fa] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                  {!isSidebarCollapsed && <span className="font-medium">Tasks</span>}
                 </div>
-                {summary?.total > 0 && <span className="text-xs font-semibold">{summary.total}</span>}
+                {!isSidebarCollapsed && summary?.total > 0 && <span className="text-xs font-semibold">{(summary.total || 0) - (summary.completed || 0)}</span>}
               </button>
 
               <button
@@ -437,10 +509,10 @@ export default function DashboardPage() {
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                  <span className="font-medium">Today</span>
+                  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                  {!isSidebarCollapsed && <span className="font-medium">Today</span>}
                 </div>
-                {(summary?.todo > 0 || summary?.inProgress > 0) && <span className="text-xs font-semibold">{(summary?.todo || 0) + (summary?.inProgress || 0)}</span>}
+                {!isSidebarCollapsed && (() => { const today = new Date().toISOString().split('T')[0]; const count = tasks.filter(t => t.status !== 'COMPLETED' && t.dueDate && (t.dueDate === today || new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0)))).length; return count > 0 ? <span className="text-xs font-semibold">{count}</span> : null; })()}
               </button>
 
               <button
@@ -450,8 +522,8 @@ export default function DashboardPage() {
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  <span className="font-medium">Calendar</span>
+                  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  {!isSidebarCollapsed && <span className="font-medium">Calendar</span>}
                 </div>
               </button>
 
@@ -462,21 +534,22 @@ export default function DashboardPage() {
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
-                  <span className="font-medium">Board</span>
+                  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
+                  {!isSidebarCollapsed && <span className="font-medium">Board</span>}
                 </div>
               </button>
 
               <button
                 onClick={() => { setStatusFilter('IMPORTANT'); setCurrentView('tasks'); setSelectedCategory(null); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center px-4 py-3 border-l-2 transition-colors ${
+                className={`w-full flex items-center justify-between px-4 py-3 border-l-2 transition-colors ${
                   statusFilter === 'IMPORTANT' ? 'bg-purple-50 dark:bg-purple-900/30 border-[#5a32fa] text-[#5a32fa] dark:text-purple-400' : 'border-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                  <span className="font-medium">Urgent</span>
+                  <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  {!isSidebarCollapsed && <span className="font-medium">Urgent</span>}
                 </div>
+                {!isSidebarCollapsed && (() => { const count = tasks.filter(t => t.priority === 'URGENT' && t.status !== 'COMPLETED').length; return count > 0 ? <span className="text-xs font-semibold">{count}</span> : null; })()}
               </button>
 
               <button
@@ -486,8 +559,8 @@ export default function DashboardPage() {
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                  <span className="font-medium">Insights</span>
+                  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                  {!isSidebarCollapsed && <span className="font-medium">Insights</span>}
                 </div>
               </button>
             </div>
@@ -495,6 +568,8 @@ export default function DashboardPage() {
             <div className="my-3 border-t border-[#e1dfdd] mx-4" />
 
             {/* Custom Categories */}
+            {!isSidebarCollapsed && (
+            <>
             <div className="space-y-0.5">
               {customCategories.map(cat => (
                 <div key={cat} className={`group flex items-center justify-between w-full border-l-2 transition-colors ${
@@ -504,14 +579,15 @@ export default function DashboardPage() {
                     onClick={() => { setSelectedCategory(cat); setCurrentView('tasks'); setStatusFilter(''); setIsSidebarOpen(false); }}
                     className="flex items-center gap-4 px-4 py-3 flex-1"
                   >
-                    <svg className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                    <svg className="w-5 h-5 text-purple-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                     <span className="font-medium text-sm">{cat}</span>
                   </button>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-gray-400">
                       {tasks.filter(t => 
-                        (t.category && t.category.toLowerCase() === cat.toLowerCase()) || 
-                        (t.title && t.title.includes(`[CAT:${cat}]`))
+                        t.status !== 'COMPLETED' &&
+                        ((t.category && t.category.toLowerCase() === cat.toLowerCase()) || 
+                        (t.title && t.title.includes(`[CAT:${cat}]`)))
                       ).length}
                     </span>
                     <button 
@@ -530,7 +606,7 @@ export default function DashboardPage() {
             </div>
 
               <div className="px-4 py-2 mt-2 group flex items-center gap-3">
-                <svg className="w-5 h-5 text-[#5a32fa]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                <svg className="w-5 h-5 text-[#5a32fa] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                 <input
                   type="text"
                   placeholder="New list"
@@ -545,6 +621,8 @@ export default function DashboardPage() {
                   className="flex-1 bg-transparent border-none focus:outline-none placeholder-purple-400 text-[#5a32fa] font-medium"
                 />
               </div>
+            </>
+            )}
             </nav>
 
           </aside>
@@ -564,12 +642,16 @@ export default function DashboardPage() {
                     'Insights'
                   ) : selectedCategory ? (
                     selectedCategory
-                  ) : statusFilter === 'TO_DO' ? (
+                  ) : statusFilter === 'TODAY' ? (
                     <><svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg> Today</>
                   ) : statusFilter === 'IMPORTANT' ? (
                     'Urgent Tasks'
                   ) : statusFilter === 'COMPLETED' ? (
                     'Completed'
+                  ) : statusFilter === 'TO_DO' ? (
+                    'To Do'
+                  ) : statusFilter === 'IN_PROGRESS' ? (
+                    'In Progress'
                   ) : 'Tasks'}
                 </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -578,7 +660,7 @@ export default function DashboardPage() {
               </div>
               
               {/* Right Side Header Controls */}
-              {currentView !== 'calendar' && (
+              {currentView !== 'calendar' && currentView !== 'kanban' && (
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                   {/* Sort Menu */}
                   <div className="relative">
@@ -674,7 +756,7 @@ export default function DashboardPage() {
               onFocus={() => setIsQuickAddActive(true)}
               onBlur={(e) => {
                 if (!e.currentTarget.contains(e.relatedTarget)) {
-                  if (!quickTitle && !quickDesc && !quickDate) setIsQuickAddActive(false);
+                  if (!quickTitle && !quickDesc && !quickDate && quickSubTasks.length === 0) setIsQuickAddActive(false);
                 }
               }}
             >
@@ -697,13 +779,12 @@ export default function DashboardPage() {
                           description: quickDesc, 
                           dueDate: quickDate,
                           priority: quickPriority,
-                          category: selectedCategory,
-                          status: 'TO_DO' 
+                          category: quickCategory || selectedCategory || null,
+                          status: 'TO_DO',
+                          subTasks: quickSubTasks.map(st => ({ title: st.title, completed: false })),
                         });
-                        setQuickTitle('');
-                        setQuickDesc('');
-                        setQuickDate('');
-                        setQuickPriority('MEDIUM');
+                        setQuickTitle(''); setQuickDesc(''); setQuickDate(''); setQuickPriority('MEDIUM');
+                        setQuickSubTasks([]); setQuickNewSubTask(''); setQuickCategory('');
                         setIsQuickAddActive(false);
                       }
                     }}
@@ -722,13 +803,55 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Subtask inline list */}
+              {isQuickAddActive && quickSubTasks.length > 0 && (
+                <div className="px-4 pb-2 pt-1 space-y-1 border-t border-gray-100 dark:border-gray-700">
+                  {quickSubTasks.map((st, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                      <svg className="w-3.5 h-3.5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      <span className="flex-1">{st.title}</span>
+                      <button onClick={() => setQuickSubTasks(quickSubTasks.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-500 transition-colors">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add subtask input */}
+              {isQuickAddActive && (
+                <div className="px-4 pb-2 flex items-center gap-2 border-t border-gray-50 dark:border-gray-700/50">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Add a checklist item..."
+                    value={quickNewSubTask}
+                    onChange={(e) => setQuickNewSubTask(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && quickNewSubTask.trim()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setQuickSubTasks([...quickSubTasks, { title: quickNewSubTask.trim(), completed: false }]);
+                        setQuickNewSubTask('');
+                      }
+                    }}
+                    className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-600 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-600 outline-none"
+                  />
+                </div>
+              )}
+
               <div className={`flex items-center justify-between px-4 py-2 bg-gray-50/50 dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700 transition-all duration-300 ${
-                isQuickAddActive || quickDate ? 'h-12 opacity-100' : 'h-0 opacity-0 pointer-events-none border-none'
+                isQuickAddActive || quickDate ? 'min-h-[48px] opacity-100' : 'h-0 opacity-0 pointer-events-none border-none'
               }`}>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <div className="relative group">
                     <input
                       type="date"
+                      min={new Date().toISOString().split('T')[0]}
                       value={quickDate}
                       onChange={(e) => setQuickDate(e.target.value)}
                       className="absolute inset-0 opacity-0 cursor-pointer z-10 w-8"
@@ -746,7 +869,7 @@ export default function DashboardPage() {
                   )}
                   
                   {/* Quick Priority Selector */}
-                  <div className="flex items-center gap-1.5 ml-2 border-l border-gray-200 dark:border-gray-700 pl-3">
+                  <div className="flex items-center gap-1.5 ml-1 border-l border-gray-200 dark:border-gray-700 pl-3">
                     {[
                       { val: 'LOW', color: 'bg-slate-400' },
                       { val: 'MEDIUM', color: 'bg-indigo-400' },
@@ -763,6 +886,22 @@ export default function DashboardPage() {
                       </button>
                     ))}
                   </div>
+
+                  {/* Quick Category Selector */}
+                  {customCategories.length > 0 && (
+                    <div className="border-l border-gray-200 dark:border-gray-700 pl-3">
+                      <select
+                        value={quickCategory || selectedCategory || ''}
+                        onChange={(e) => setQuickCategory(e.target.value)}
+                        className="text-xs font-semibold bg-transparent border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-purple-600 dark:text-purple-400 focus:ring-1 focus:ring-purple-400 outline-none cursor-pointer"
+                      >
+                        <option value="">No list</option>
+                        {customCategories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
                 
                 <button 
@@ -773,13 +912,12 @@ export default function DashboardPage() {
                         description: quickDesc, 
                         dueDate: quickDate,
                         priority: quickPriority,
-                        category: selectedCategory,
-                        status: 'TO_DO' 
+                        category: quickCategory || selectedCategory || null,
+                        status: 'TO_DO',
+                        subTasks: quickSubTasks.map(st => ({ title: st.title, completed: false })),
                       });
-                      setQuickTitle('');
-                      setQuickDesc('');
-                      setQuickDate('');
-                      setQuickPriority('MEDIUM');
+                      setQuickTitle(''); setQuickDesc(''); setQuickDate(''); setQuickPriority('MEDIUM');
+                      setQuickSubTasks([]); setQuickNewSubTask(''); setQuickCategory('');
                       setIsQuickAddActive(false);
                     }
                   }}
@@ -800,19 +938,21 @@ export default function DashboardPage() {
                 onStatusChange={handleStatusChange}
                 onDelete={(t) => setDeleteTarget(t)}
                 onToggleImportant={handleToggleImportant}
+                onSubTaskToggle={handleSubTaskToggle}
               />
             ) : currentView === 'kanban' ? (
               <KanbanView 
                 tasks={tasks} 
                 onStatusChange={handleStatusChange}
                 onTaskClick={openEditForm}
+                onDelete={(t) => setDeleteTarget(t)}
               />
             ) : currentView === 'insights' ? (
               <AnalyticsView tasks={tasks} />
             ) : isLoadingTasks ? (
               <LoadingSpinner message="Loading..." />
             ) : sortedTasks.length === 0 ? (
-              <EmptyState view={selectedCategory || statusFilter || 'tasks'} />
+              <EmptyState view={selectedCategory || statusFilter || 'tasks'} onCreateTask={() => { setEditingTask(null); setIsFormOpen(true); }} />
             ) : (
               <div className="flex flex-col gap-6">
                 {/* Overdue Section */}
@@ -838,6 +978,7 @@ export default function DashboardPage() {
                             onDelete={(t) => setDeleteTarget(t)}
                             onStatusChange={handleStatusChange}
                             onToggleImportant={handleToggleImportant}
+                            onSubTaskToggle={handleSubTaskToggle}
                           />
                         ))}
                       </AnimatePresence>
@@ -860,6 +1001,7 @@ export default function DashboardPage() {
                         onDelete={(t) => setDeleteTarget(t)}
                         onStatusChange={handleStatusChange}
                         onToggleImportant={handleToggleImportant}
+                        onSubTaskToggle={handleSubTaskToggle}
                       />
                     ))}
                   </AnimatePresence>
@@ -892,6 +1034,7 @@ export default function DashboardPage() {
                               onDelete={(t) => setDeleteTarget(t)}
                               onStatusChange={handleStatusChange}
                               onToggleImportant={handleToggleImportant}
+                            onSubTaskToggle={handleSubTaskToggle}
                             />
                           ))}
                         </AnimatePresence>
@@ -913,6 +1056,8 @@ export default function DashboardPage() {
         task={editingTask}
         isLoading={isFormLoading}
         isTodayView={statusFilter === 'TO_DO'}
+        customCategories={customCategories}
+        selectedCategory={selectedCategory}
       />
 
       {/* Delete Confirmation Dialog */}
@@ -941,26 +1086,6 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Command Palette (Spotlight Search) */}
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-        tasks={tasks}
-        onNavigate={(view) => {
-          setCurrentView(view);
-          setStatusFilter('');
-          setSelectedCategory(null);
-        }}
-        onCreateTask={(task) => {
-          if (task && task.id) {
-            setEditingTask(task);
-            setIsFormOpen(true);
-          } else {
-            setEditingTask(null);
-            setIsFormOpen(true);
-          }
-        }}
-      />
     </div>
   );
 }

@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 public class TaskService {
 
     private final TaskRepository taskRepository;
-    private final SubTaskRepository subTaskRepository;
 
     /** Create a new task for the authenticated user. */
     public TaskResponse createTask(TaskRequest request, User user) {
@@ -102,6 +101,7 @@ public class TaskService {
 
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
+
         task.setStatus(request.getStatus());
         task.setDueDate(request.getDueDate());
         task.setCategory(request.getCategory());

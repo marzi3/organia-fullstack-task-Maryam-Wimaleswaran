@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 /**
  * Kanban Board View — allows drag-and-drop task status management.
  */
-export default function KanbanView({ tasks, onStatusChange, onTaskClick }) {
+export default function KanbanView({ tasks, onStatusChange, onTaskClick, onDelete }) {
   const [columns, setColumns] = useState({
     'TO_DO': { id: 'TO_DO', title: 'To Do', taskIds: [] },
     'IN_PROGRESS': { id: 'IN_PROGRESS', title: 'On Going', taskIds: [] },
@@ -110,7 +110,6 @@ export default function KanbanView({ tasks, onStatusChange, onTaskClick }) {
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                onClick={() => onTaskClick(task)}
                                 className={`group relative bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all ${
                                   snapshot.isDragging ? 'shadow-xl rotate-2 ring-2 ring-purple-400/20' : ''
                                 }`}
@@ -118,6 +117,30 @@ export default function KanbanView({ tasks, onStatusChange, onTaskClick }) {
                                 {/* Priority Indicator */}
                                 <div className={`absolute top-0 left-0 bottom-0 w-1 rounded-l-xl ${priorityColors[task.priority] || 'bg-slate-200'}`} />
                                 
+                                {/* Hover Action Buttons */}
+                                {task.status !== 'COMPLETED' && (
+                                  <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); onTaskClick(task); }}
+                                      className="p-1.5 text-gray-400 hover:text-[#5a32fa] rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                                      aria-label="Edit task"
+                                    >
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); onDelete(task); }}
+                                      className="p-1.5 text-gray-400 hover:text-red-500 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
+                                      aria-label="Delete task"
+                                    >
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                )}
+
                                 <h4 className={`text-sm font-semibold mb-2 line-clamp-2 transition-colors ${
                                   task.status === 'COMPLETED' ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100'
                                 }`}>

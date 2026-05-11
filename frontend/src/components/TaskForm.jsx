@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
  * Task create/edit form modal with validation.
  * Supports both creation and editing modes based on the `task` prop.
  */
-export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoading = false, isTodayView = false }) {
+export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoading = false, isTodayView = false, customCategories = [], selectedCategory = null }) {
   const isEditing = !!task;
 
   const [formData, setFormData] = useState({
@@ -16,6 +16,7 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
     status: 'TO_DO',
     dueDate: '',
     priority: 'MEDIUM',
+    category: '',
   });
   const [subTasks, setSubTasks] = useState([]);
   const [newSubTaskTitle, setNewSubTaskTitle] = useState('');
@@ -30,10 +31,11 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
         status: task.status || 'TO_DO',
         dueDate: task.dueDate || '',
         priority: task.priority || 'MEDIUM',
+        category: task.category || task.title?.match(/\[CAT:(.*?)\]/)?.[1] || '',
       });
       setSubTasks(task.subTasks || []);
     } else {
-      setFormData({ title: '', description: '', status: 'TO_DO', dueDate: '', priority: 'MEDIUM' });
+      setFormData({ title: '', description: '', status: 'TO_DO', dueDate: '', priority: 'MEDIUM', category: selectedCategory || '' });
       setSubTasks([]);
     }
     setErrors({});
@@ -46,7 +48,13 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
     if (!formData.status) newErrors.status = 'Status is required';
     if (formData.dueDate) {
       const dueDate = new Date(formData.dueDate);
-      if (isNaN(dueDate.getTime())) newErrors.dueDate = 'Invalid date';
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (isNaN(dueDate.getTime())) {
+        newErrors.dueDate = 'Invalid date';
+      } else if (dueDate < today && !isEditing) {
+        newErrors.dueDate = 'Due date cannot be in the past';
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -180,6 +188,27 @@ export default function TaskForm({ isOpen, onClose, onSubmit, task = null, isLoa
                   className="w-full px-4 py-2.5 text-sm border border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-colors outline-none resize-none"
                 />
               </div>
+
+              {/* Category (List) */}
+              {customCategories.length > 0 && (
+                <div>
+                  <label htmlFor="task-category" className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                    List (Category)
+                  </label>
+                  <select
+                    id="task-category"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 text-sm border border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-colors outline-none cursor-pointer"
+                  >
+                    <option value="">None</option>
+                    {customCategories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Status + Due Date row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

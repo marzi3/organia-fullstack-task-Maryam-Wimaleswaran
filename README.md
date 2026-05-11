@@ -2,440 +2,351 @@
 
 > A full-stack Task Management Web Application built for the **Organia Innovations Labs Full Stack Developer Internship Assessment**.
 
-![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-green?logo=spring)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-38bdf8?logo=tailwindcss)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
 
 ---
 
 ## 📋 Project Overview
 
-Organia Task Manager is a modern, full-stack task management application that enables users to create, organize, and track tasks through an intuitive dashboard interface. The application features secure JWT authentication, RESTful APIs, responsive UI, and complete CRUD operations — all built with production-ready architecture.
+Organia Task Manager is a modern, production-ready task management application that enables users to create, organize, and track tasks through an intuitive dashboard. Built with a **Next.js 16** frontend and **Spring Boot 3.2** backend, it features secure JWT authentication, real-time search, priority management, multiple views (List, Calendar, Kanban Board, Insights), dark mode, and full CRUD operations with subtask support.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | Next.js 16 (App Router), React 19, Tailwind CSS 4, Framer Motion |
+| **Backend** | Java 17, Spring Boot 3.2, Spring Security, Spring Data JPA |
+| **Database** | PostgreSQL 16 (Supabase for production) |
+| **Authentication** | JWT (JSON Web Tokens) with HS512 signing |
+| **Build Tools** | Maven (Backend), npm (Frontend) |
+| **Deployment** | Vercel (Frontend), Render (Backend), Supabase (Database) |
 
 ---
 
 ## ✨ Features
 
 ### Core Features
-- ✅ **User Authentication** — Register, Login, Logout with JWT tokens
-- ✅ **Task CRUD** — Create, Read, Update, Delete tasks
-- ✅ **Task Status Workflow** — To Do → In Progress → Completed
-- ✅ **User Isolation** — Each user can only access their own tasks
-- ✅ **Dashboard Analytics** — Real-time summary cards with task counts
-
-### Bonus Features
-- 🔍 **Search** — Search tasks by title
-- 🏷️ **Filter** — Filter tasks by status
-- 📄 **Pagination** — Paginated API endpoint
-- 🎨 **Modern UI** — Glassmorphism, micro-animations, gradient accents
-- 🐳 **Docker Support** — Complete Docker Compose setup
-- 📱 **Responsive Design** — Mobile-first, works on all devices
-- 🔐 **Role-based Access** — USER and ADMIN roles
-- ✨ **Smooth Animations** — Framer Motion transitions throughout
-
----
-
-## 🛠️ Technology Stack
-
-| Layer       | Technology                              |
-|-------------|----------------------------------------|
-| **Frontend**    | Next.js 15 (App Router), React 19     |
-| **Styling**     | Tailwind CSS 4, Framer Motion          |
-| **Backend**     | Spring Boot 3.2, Java 17              |
-| **Database**    | PostgreSQL 16                          |
-| **Auth**        | JWT (jjwt 0.12.5), BCrypt             |
-| **ORM**         | Spring Data JPA / Hibernate           |
-| **Containerization** | Docker, Docker Compose            |
-
----
-
-## 📂 Folder Structure
-
-```
-organia-fullstack-task-maryam/
-├── backend/                          # Spring Boot Backend
-│   ├── src/main/java/com/organia/taskmanager/
-│   │   ├── config/                   # Security & app config
-│   │   ├── controller/               # REST controllers
-│   │   ├── dto/                      # Request/Response DTOs
-│   │   ├── exception/                # Global exception handling
-│   │   ├── model/                    # JPA entities & enums
-│   │   ├── repository/               # Spring Data JPA repos
-│   │   ├── security/                 # JWT service & filter
-│   │   └── service/                  # Business logic
-│   ├── src/main/resources/
-│   │   └── application.yml           # Configuration
-│   ├── Dockerfile
-│   └── pom.xml
-├── frontend/                         # Next.js Frontend
-│   ├── src/
-│   │   ├── app/                      # App Router pages
-│   │   │   ├── dashboard/page.jsx
-│   │   │   ├── login/page.jsx
-│   │   │   ├── register/page.jsx
-│   │   │   ├── layout.jsx
-│   │   │   ├── page.jsx
-│   │   │   └── globals.css
-│   │   ├── components/               # Reusable UI components
-│   │   ├── context/                  # React Context (Auth)
-│   │   ├── services/                 # API service layer
-│   │   ├── utils/                    # Auth utilities
-│   │   └── middleware.js             # Route protection
-│   ├── Dockerfile
-│   └── package.json
-├── docker-compose.yml
-└── README.md
-```
-
----
-
-## 🚀 Setup & Run Instructions
-
-### Prerequisites
-- **Java 17+** (for backend)
-- **Node.js 18+** (for frontend)
-- **PostgreSQL 14+** (for database)
-- **Docker** (optional, for containerized setup)
-
----
-
-### Option 1: Docker (Recommended)
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/organia-fullstack-task-maryam.git
-cd organia-fullstack-task-maryam
-
-# Start all services
-docker compose up --build
-```
-
-Access:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8080
-
----
-
-### Option 2: Manual Setup
-
-#### Database Setup
-
-```sql
--- Create the database
-CREATE DATABASE organia_tasks;
-```
-
-#### Backend Setup
-
-```bash
-cd backend
-
-# Set environment variables (copy .env.example to .env and modify)
-cp .env.example .env
-
-# Run with Maven wrapper
-chmod +x mvnw
-./mvnw spring-boot:run
-```
-
-Backend will start at **http://localhost:8080**
-
-#### Frontend Setup
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Create environment file
-cp .env.example .env.local
-# Edit .env.local to set NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
-
-# Run development server
-npm run dev
-```
-
-Frontend will start at **http://localhost:3000**
-
----
-
-## 🔐 Environment Variables
-
-### Backend (`backend/.env`)
-| Variable | Description | Default |
-|---|---|---|
-| `SPRING_DATASOURCE_URL` | PostgreSQL connection URL | `jdbc:postgresql://localhost:5432/organia_tasks` |
-| `SPRING_DATASOURCE_USERNAME` | Database username | `postgres` |
-| `SPRING_DATASOURCE_PASSWORD` | Database password | `postgres` |
-| `JWT_SECRET` | Secret key for JWT signing | (auto-generated) |
-| `PORT` | Server port | `8080` |
-
-### Frontend (`frontend/.env.local`)
-| Variable | Description | Default |
-|---|---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | Backend API URL | `http://localhost:8080` |
-
----
-
-## 📡 API Documentation
-
-### Authentication Endpoints
-
-#### `POST /auth/register`
-Register a new user account.
-
-**Request Body:**
-```json
-{
-  "name": "Jane Doe",
-  "email": "jane@example.com",
-  "password": "password123"
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiJ9...",
-  "id": 1,
-  "name": "Jane Doe",
-  "email": "jane@example.com",
-  "role": "USER"
-}
-```
-
----
-
-#### `POST /auth/login`
-Authenticate an existing user.
-
-**Request Body:**
-```json
-{
-  "email": "jane@example.com",
-  "password": "password123"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiJ9...",
-  "id": 1,
-  "name": "Jane Doe",
-  "email": "jane@example.com",
-  "role": "USER"
-}
-```
-
----
-
-### Task Endpoints (🔒 Requires Authentication)
-
-All task endpoints require the `Authorization: Bearer <token>` header.
-
-#### `GET /tasks`
-Get all tasks for the authenticated user.
-
-**Query Parameters (optional):**
-- `status` — Filter by status (`TO_DO`, `IN_PROGRESS`, `COMPLETED`)
-- `search` — Search tasks by title keyword
-
-**Response (200 OK):**
-```json
-[
-  {
-    "id": 1,
-    "title": "Complete project",
-    "description": "Finish the full-stack assessment",
-    "status": "IN_PROGRESS",
-    "dueDate": "2024-12-31",
-    "createdAt": "2024-01-01T10:00:00",
-    "updatedAt": "2024-01-01T10:00:00"
-  }
-]
-```
-
----
-
-#### `POST /tasks`
-Create a new task.
-
-**Request Body:**
-```json
-{
-  "title": "New Task",
-  "description": "Task description",
-  "status": "TO_DO",
-  "dueDate": "2024-12-31"
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "id": 2,
-  "title": "New Task",
-  "description": "Task description",
-  "status": "TO_DO",
-  "dueDate": "2024-12-31",
-  "createdAt": "2024-01-01T10:00:00",
-  "updatedAt": "2024-01-01T10:00:00"
-}
-```
-
----
-
-#### `PUT /tasks/{id}`
-Update an existing task.
-
-**Request Body:**
-```json
-{
-  "title": "Updated Task",
-  "description": "Updated description",
-  "status": "IN_PROGRESS",
-  "dueDate": "2025-01-15"
-}
-```
-
-**Response (200 OK):** Updated task object.
-
----
-
-#### `PATCH /tasks/{id}/status`
-Update only the status of a task.
-
-**Request Body:**
-```json
-{
-  "status": "COMPLETED"
-}
-```
-
-**Response (200 OK):** Updated task object.
-
----
-
-#### `DELETE /tasks/{id}`
-Delete a task.
-
-**Response (200 OK):**
-```json
-{
-  "message": "Task deleted successfully"
-}
-```
-
----
-
-#### `GET /tasks/summary`
-Get dashboard summary statistics.
-
-**Response (200 OK):**
-```json
-{
-  "total": 10,
-  "todo": 3,
-  "inProgress": 4,
-  "completed": 3
-}
-```
-
----
-
-## 🔒 Authentication Flow
-
-1. User registers or logs in via `/auth/register` or `/auth/login`
-2. Backend validates credentials and returns a **JWT token**
-3. Frontend stores the token in `localStorage`
-4. All subsequent API requests include `Authorization: Bearer <token>` header
-5. Backend's `JwtAuthenticationFilter` validates the token on every request
-6. Tasks are scoped to the authenticated user — no cross-user access
-
----
-
-## 🎯 Demo Credentials
-
-After setting up the app, register a new account or use:
-
-| Field | Value |
-|---|---|
-| **Name** | Demo User |
-| **Email** | demo@organia.com |
-| **Password** | demo123456 |
-
----
-
-## 🌐 Deployment
-
-### Live URLs
-| Service | URL |
-|---|---|
-| **Frontend** | *Deploy to Vercel — add URL here* |
-| **Backend** | *Deploy to Render/Railway — add URL here* |
-| **Database** | *Use Neon/Supabase PostgreSQL — add connection string* |
-
-### Deployment Steps
-
-#### Frontend → Vercel
-1. Push code to GitHub
-2. Import repository in [Vercel](https://vercel.com)
-3. Set root directory to `frontend`
-4. Add environment variable: `NEXT_PUBLIC_API_BASE_URL` = your backend URL
-5. Deploy
-
-#### Backend → Render
-1. Create a new Web Service on [Render](https://render.com)
-2. Set root directory to `backend`
-3. Build command: `./mvnw clean package -DskipTests`
-4. Start command: `java -jar target/*.jar`
-5. Add environment variables (database URL, JWT secret, etc.)
-6. Deploy
-
-#### Database → Neon
-1. Create a new database on [Neon](https://neon.tech)
-2. Copy the connection string
-3. Set `SPRING_DATASOURCE_URL` on Render to the Neon connection string
+- ✅ User Authentication — Register, Login, Logout with JWT tokens
+- ✅ Task CRUD — Create, Read, Update, Delete tasks
+- ✅ Task Status Workflow — To Do → In Progress → Completed
+- ✅ User Isolation — Each user can only access their own tasks
+- ✅ Dashboard Analytics — Real-time summary cards with task counts
+- ✅ Error Handling — Global exception handler with structured error responses
+
+### Advanced Features
+- 🔍 Real-time search by title
+- ⚡ Sort by priority, due date, or title
+- ⭐ Priority levels — Urgent, High, Medium, Low with color indicators
+- 📁 Categories — Organize tasks into Work, Personal, or custom lists
+- ✅ Subtasks / Checklists — Inline checklists with progress tracking
+- 📅 Calendar View — Visual calendar with priority-colored task dots
+- 📊 Kanban Board — Drag-and-drop board (To Do / In Progress / Done)
+- 📈 Insights Dashboard — Charts and statistics for task trends
+- 🌙 Dark Mode — Full dark/light theme toggle
+- 📱 Responsive Design — Mobile-first with collapsible sidebar
+- 🔔 Overdue Alerts — Visual indicators for past-due tasks
+- 🔄 One-click Reschedule — Reschedule overdue tasks to today
 
 ---
 
 ## 📸 Screenshots
 
-> *Add screenshots of the application here*
+> Add screenshots to a `screenshots/` folder and update the paths below.
 
-| Landing Page | Dashboard |
-|---|---|
-| ![Landing Page](screenshots/landing.png) | ![Dashboard](screenshots/dashboard.png) |
-
-| Login | Register |
-|---|---|
-| ![Login](screenshots/login.png) | ![Register](screenshots/register.png) |
+<!--
+![Dashboard](./screenshots/dashboard.png)
+![Calendar View](./screenshots/calendar.png)
+![Kanban Board](./screenshots/kanban.png)
+![Dark Mode](./screenshots/dark-mode.png)
+-->
 
 ---
 
-## 🔮 Future Improvements
+## 🚀 Setup and Run Instructions
 
-- [ ] Dark mode toggle
-- [ ] Task due date reminders / notifications
-- [ ] Task priority levels (Low, Medium, High)
-- [ ] Task categories / tags
-- [ ] Drag-and-drop Kanban board view
-- [ ] Admin dashboard with user management
-- [ ] Email verification on registration
-- [ ] Password reset functionality
-- [ ] Export tasks to CSV/PDF
-- [ ] Real-time updates with WebSockets
+### Prerequisites
+- Java 17+ — [Download](https://adoptium.net/)
+- Node.js 18+ — [Download](https://nodejs.org/)
+- PostgreSQL 16 — [Download](https://www.postgresql.org/download/)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/marzi3/organia-fullstack-task-Maryam-Wimaleswaran.git
+cd organia-fullstack-task-Maryam-Wimaleswaran
+```
+
+### 2. Database Setup
+
+```bash
+psql -U postgres
+CREATE DATABASE organia_tasks;
+\q
+```
+
+### 3. Backend Setup
+
+```bash
+cd backend
+```
+
+Configure `src/main/resources/application.yml`:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/organia_tasks
+    username: postgres
+    password: your_password
+```
+
+Run:
+
+```bash
+chmod +x mvnw
+./mvnw spring-boot:run
+```
+
+Backend starts at **http://localhost:8080**
+
+### 4. Frontend Setup
+
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+```
+
+Edit `.env.local`:
+
+```
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+```
+
+Run:
+
+```bash
+npm run dev
+```
+
+Frontend starts at **http://localhost:3000**
+
+---
+
+## 🌐 Live URLs
+
+| Service | URL |
+|---|---|
+| **Frontend** | *Add your Vercel URL here* |
+| **Backend** | *Add your Render URL here* |
+
+---
+
+## 🎯 Demo Credentials
+
+| Field | Value |
+|---|---|
+| **Email** | `demo@organia.com` |
+| **Password** | `Demo@123` |
+
+> You can also register a new account from the sign-up page.
+
+---
+
+## 📡 API Documentation
+
+Base URL: `http://localhost:8080` (local) or your deployed backend URL.
+
+### Authentication
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/auth/register` | Register a new user |
+| POST | `/auth/login` | Login and get JWT token |
+
+**Register Request:**
+
+```json
+{
+  "name": "Maryam W",
+  "email": "maryam@organia.io",
+  "password": "Demo@123"
+}
+```
+
+**Login Request:**
+
+```json
+{
+  "email": "maryam@organia.io",
+  "password": "Demo@123"
+}
+```
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzUxMiJ9...",
+  "id": 1,
+  "name": "Maryam W",
+  "email": "maryam@organia.io",
+  "role": "USER"
+}
+```
+
+### Tasks (Requires `Authorization: Bearer <token>`)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/tasks` | Get all tasks for authenticated user |
+| GET | `/tasks/summary` | Get task count summary |
+| POST | `/tasks` | Create a new task |
+| PUT | `/tasks/{id}` | Update a task |
+| PATCH | `/tasks/{id}/status` | Update task status only |
+| DELETE | `/tasks/{id}` | Delete a task |
+
+**Query Parameters for `GET /tasks`:**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `status` | String | `TO_DO`, `IN_PROGRESS`, `COMPLETED` |
+| `search` | String | Search by title |
+| `category` | String | Filter by category |
+| `priority` | String | `URGENT`, `HIGH`, `MEDIUM`, `LOW` |
+
+**Create Task Request:**
+
+```json
+{
+  "title": "Design landing page",
+  "description": "Create wireframes for the product page",
+  "status": "TO_DO",
+  "dueDate": "2026-05-15",
+  "priority": "HIGH",
+  "category": "Work",
+  "subTasks": [
+    { "title": "Research competitors", "completed": false },
+    { "title": "Create mobile layout", "completed": false }
+  ]
+}
+```
+
+**Task Summary Response:**
+
+```json
+{
+  "total": 8,
+  "todo": 4,
+  "inProgress": 2,
+  "completed": 2
+}
+```
+
+### Error Responses
+
+All errors return structured JSON:
+
+```json
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Title is required",
+  "fieldErrors": {
+    "title": "Title is required"
+  }
+}
+```
+
+| Status Code | Meaning |
+|---|---|
+| 400 | Validation error (missing/invalid fields) |
+| 401 | Unauthorized (invalid or missing JWT) |
+| 403 | Forbidden (accessing another user's task) |
+| 404 | Task not found |
+| 409 | Duplicate email on registration |
+
+---
+
+## 🛡️ Error Handling
+
+The application implements comprehensive error handling at every layer:
+
+### Backend
+- **`GlobalExceptionHandler`** — catches all exceptions and returns structured JSON responses
+- **`@Valid` annotations** — validates request DTOs with field-level error messages
+- **`JwtAuthenticationFilter`** — returns 401 for invalid/expired tokens
+- **Task ownership validation** — returns 403 if a user tries to access another user's task
+
+### Frontend
+- **Try-catch blocks** — all API calls wrapped with error handling
+- **Toast notifications** — user-friendly error/success messages
+- **Loading states** — spinners shown during API calls
+- **Optimistic updates** — subtask toggles update UI instantly, revert on failure
+- **Auth guard** — middleware redirects unauthenticated users to login
+
+---
+
+## 🛡️ Proper Error Handling
+
+The application implements a robust, multi-layer error handling strategy:
+
+### 1. Backend Validation & Exception Handling
+- **Structured Error Responses**: All errors return a consistent JSON format with status codes, error types, and descriptive messages.
+- **Global Exception Handler**: A `@ControllerAdvice` handles everything from `ResourceNotFound` (404) to `DataIntegrityViolation` (409).
+- **Request Validation**: Uses JSR-303 Bean Validation (`@Valid`, `@NotBlank`, etc.) on DTOs to catch invalid data before it reaches the service layer.
+- **Security Exceptions**: JWT errors are caught and return structured 401/403 responses instead of generic server errors.
+
+### 2. Frontend Resilience
+- **Centralized API Wrapper**: A core request utility catches non-OK responses and normalizes them into meaningful JS Errors.
+- **Toast Notifications**: Interactive UI feedback using a custom toast system for both success and error states.
+- **Form Validation**: Real-time client-side validation prevents submitting empty titles or invalid dates.
+- **Auth Guard**: Middleware ensures users are redirected to login if their token expires or is invalid.
+
+---
+
+## 📁 Project Structure
+
+```
+organia-fullstack-task/
+├── backend/
+│   ├── src/main/java/com/organia/taskmanager/
+│   │   ├── config/          # Security, JWT, CORS configuration
+│   │   ├── controller/      # REST API controllers
+│   │   ├── dto/             # Request/Response DTOs
+│   │   ├── exception/       # Global exception handler
+│   │   ├── model/           # JPA entities (Task, User, SubTask)
+│   │   ├── repository/      # Spring Data JPA repositories
+│   │   ├── security/        # JWT filter, service, auth entry point
+│   │   └── service/         # Business logic layer
+│   └── src/main/resources/
+│       └── application.yml
+│
+├── frontend/
+│   ├── src/
+│   │   ├── app/             # Next.js App Router pages
+│   │   ├── components/      # UI components (TaskCard, CalendarView, etc.)
+│   │   ├── context/         # Auth context provider
+│   │   └── services/        # API service layer
+│   └── .env.local
+│
+└── README.md
+```
+
+---
+
+## 👩‍💻 Author
+
+**Maryam Wimaleswaran**
+- GitHub: [@marzi3](https://github.com/marzi3)
 
 ---
 
 ## 📄 License
 
-This project is built for the Organia Innovations Labs Internship Assessment.
-
----
-
-**Built with ❤️ by Maryam Wimaleswaran**
+This project is built as part of the Organia Innovations Labs Full Stack Developer Internship Assessment.
