@@ -136,8 +136,8 @@ Frontend starts at **http://localhost:3000**
 
 | Field | Value |
 |---|---|
-| **Email** | `demo@organia.com` |
-| **Password** | `Demo@123` |
+| **Admin Email** | `admin@organia.com` |
+| **Password** | `Admin@123` |
 
 > You can also register a new account from the sign-up page.
 
@@ -158,9 +158,9 @@ Base URL: `http://localhost:8080` (local) or your deployed backend URL.
 
 ```json
 {
-  "name": "Maryam W",
-  "email": "maryam@organia.io",
-  "password": "Demo@123"
+  "name": "Admin User",
+  "email": "admin@organia.com",
+  "password": "Admin@123"
 }
 ```
 
@@ -168,8 +168,8 @@ Base URL: `http://localhost:8080` (local) or your deployed backend URL.
 
 ```json
 {
-  "email": "maryam@organia.io",
-  "password": "Demo@123"
+  "email": "admin@organia.com",
+  "password": "Admin@123"
 }
 ```
 
@@ -177,11 +177,11 @@ Base URL: `http://localhost:8080` (local) or your deployed backend URL.
 
 ```json
 {
-  "token": "eyJhbGciOiJIUzUxMiJ9...",
+  "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbkBvcmdhbmlhLmNvbSIsImlhdCI6MTcxNTQ1NjAwMCwiZXhwIjoxNzE1NTQyNDAwfQ.example_signature_Hk9z2X...",
   "id": 1,
-  "name": "Maryam W",
-  "email": "maryam@organia.io",
-  "role": "USER"
+  "name": "Admin User",
+  "email": "admin@organia.com",
+  "role": "ADMIN"
 }
 ```
 
