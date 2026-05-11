@@ -451,6 +451,14 @@ export default function DashboardPage() {
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name || 'User'}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email || 'user@example.com'}</p>
                 </div>
+                {user?.role === 'ADMIN' && (
+                  <button 
+                    onClick={() => router.push('/admin')}
+                    className="block w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors border-b border-gray-50 dark:border-gray-700/50"
+                  >
+                    Admin Panel
+                  </button>
+                )}
                 <button onClick={logout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                   Sign out
                 </button>
