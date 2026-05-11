@@ -2,29 +2,15 @@
 
 > A high-performance, full-stack Task Management Web Application.
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-green?logo=spring)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-38bdf8?logo=tailwindcss)
 
 ---
 
 ## 📋 Project Overview
 
-Organia Task Manager is a modern, production-ready task management application that enables users to create, organize, and track tasks through an intuitive dashboard. Built with a **Next.js 16** frontend and **Spring Boot 3.2** backend, it features secure JWT authentication, real-time search, priority management, multiple views (List, Calendar, Kanban Board, Insights, Admin Panel), and full CRUD operations.
+Organia Task Manager is a modern, production-ready task management application that enables users to create, organize, and track tasks through an intuitive dashboard. It features secure authentication, real-time search, priority management, multiple views (List, Calendar, Kanban Board, Insights, Admin Panel), and full CRUD operations.
 
 ---
 
-## 🛠️ Technology Stack
-
-| Layer | Technology |
-|---|---|
-| **Frontend** | Next.js 16 (App Router), React 19, Tailwind CSS 4, Framer Motion |
-| **Backend** | Java 17, Spring Boot 3.2, Spring Security, Spring Data JPA |
-| **Database** | PostgreSQL 16 (Supabase for production) |
-| **Authentication** | JWT (JSON Web Tokens) with HS512 signing |
-| **Build Tools** | Maven (Backend), npm (Frontend) |
-| **Deployment** | Vercel (Frontend), Render (Backend), Supabase (Database) |
 
 ---
 
@@ -70,9 +56,9 @@ Organia Task Manager is a modern, production-ready task management application t
 ## 🚀 Setup and Run Instructions
 
 ### Prerequisites
-- Java 17+ — [Download](https://adoptium.net/)
-- Node.js 18+ — [Download](https://nodejs.org/)
-- PostgreSQL 16 — [Download](https://www.postgresql.org/download/)
+- Backend Runtime Environment
+- Frontend Runtime Environment
+- Database Server
 
 ### 1. Clone the Repository
 
@@ -84,9 +70,8 @@ cd organia-fullstack-task-Maryam-Wimaleswaran
 ### 2. Database Setup
 
 ```bash
-psql -U postgres
+# Open your database terminal
 CREATE DATABASE organia_tasks;
-\q
 ```
 
 ### 3. Backend Setup
@@ -98,10 +83,10 @@ cd backend
 Configure `src/main/resources/application.yml`:
 
 ```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/organia_tasks
-    username: postgres
+configuration:
+  database:
+    url: protocol://localhost:port/organia_tasks
+    username: db_user
     password: your_password
 ```
 
@@ -109,7 +94,7 @@ Run:
 
 ```bash
 chmod +x mvnw
-./mvnw spring-boot:run
+./mvnw start
 ```
 
 Backend starts at **http://localhost:8080**
@@ -323,22 +308,22 @@ The application implements a robust, multi-layer error handling strategy:
 organia-fullstack-task/
 ├── backend/
 │   ├── src/main/java/com/organia/taskmanager/
-│   │   ├── config/          # Security, JWT, CORS configuration
-│   │   ├── controller/      # REST API controllers
-│   │   ├── dto/             # Request/Response DTOs
-│   │   ├── exception/       # Global exception handler
-│   │   ├── model/           # JPA entities (Task, User, SubTask)
-│   │   ├── repository/      # Spring Data JPA repositories
-│   │   ├── security/        # JWT filter, service, auth entry point
-│   │   └── service/         # Business logic layer
+│   │   ├── config/          # Security and global configuration
+│   │   ├── controller/      # API controllers
+│   │   ├── dto/             # Data objects
+│   │   ├── exception/       # Error handling
+│   │   ├── model/           # Data models
+│   │   ├── repository/      # Data access layer
+│   │   ├── security/        # Auth security
+│   │   └── service/         # Logic layer
 │   └── src/main/resources/
 │       └── application.yml
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── app/             # Next.js App Router pages
-│   │   ├── components/      # UI components (TaskCard, CalendarView, etc.)
-│   │   ├── context/         # Auth context provider
+│   │   ├── app/             # Application pages
+│   │   ├── components/      # UI components
+│   │   ├── context/         # Auth context
 │   │   └── services/        # API service layer
 │   └── .env.local
 │

@@ -45,7 +45,7 @@ export default function LandingPage() {
         </svg>
       ),
       title: 'Secure Authentication',
-      description: 'JWT-based authentication with BCrypt password hashing ensures your data stays protected.',
+      description: 'Enterprise-grade encryption and secure protocols ensure your data stays protected.',
       gradient: 'from-emerald-500 to-teal-500',
     },
     {
@@ -99,7 +99,7 @@ export default function LandingPage() {
             />
 
             <p className="mt-4 text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-              A high-performance task management platform built with Next.js and Spring Boot. 
+              A high-performance task management platform designed for speed and simplicity. 
               Elevate your team's productivity with an interface designed for focus.
             </p>
 
@@ -130,7 +130,7 @@ export default function LandingPage() {
               <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">productive</span>
             </h2>
             <p className="mt-4 text-lg text-[var(--color-text-secondary)] max-w-2xl mx-auto">
-              Built with modern technologies and best practices for a seamless task management experience.
+              Designed with industry best practices for a seamless task management experience.
             </p>
           </div>
 
@@ -154,19 +154,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Tech Stack */}
-      <section className="py-16 border-t border-[var(--color-border)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm font-medium text-[var(--color-text-muted)] mb-8">BUILT WITH</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 text-[var(--color-text-secondary)]">
-            {['Next.js', 'Spring Boot', 'PostgreSQL', 'Tailwind CSS', 'JWT Auth', 'Docker'].map((tech) => (
-              <span key={tech} className="text-sm font-semibold px-4 py-2 bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
-                {tech}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
 
 
     </div>
