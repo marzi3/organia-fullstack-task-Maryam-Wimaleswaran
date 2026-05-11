@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
  * Uses cookie-based token check as a lightweight guard;
  * full validation happens on the client via AuthContext.
  */
-export function middleware(request) {
+export function proxy(request) {
   const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
 

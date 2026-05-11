@@ -14,7 +14,7 @@ import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
  * Redirects authenticated users to dashboard.
  */
 export default function LandingPage() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
