@@ -168,7 +168,7 @@ export default function LandingPage() {
       <footer className="border-t border-[var(--color-border)] py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-[var(--color-text-muted)]">
-            © 2024 OrganiaTasks — Organia Innovations Labs Internship Assessment
+            © 2024 OrganiaTasks
           </p>
         </div>
       </footer>

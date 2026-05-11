@@ -349,4 +349,4 @@ organia-fullstack-task/
 
 ## 📄 License
 
-This project is built as part of the Organia Innovations Labs Full Stack Developer Internship Assessment.
+This project is open-source and available under the MIT License.
