@@ -38,7 +38,11 @@ export function AuthProvider({ children }) {
     localStorage.setItem('user', JSON.stringify(userData));
     setToken(jwt);
     setUser(userData);
-    router.push('/dashboard');
+    if (userData.role === 'ADMIN') {
+      router.push('/admin');
+    } else {
+      router.push('/dashboard');
+    }
   }, [router]);
 
   const logout = useCallback(() => {

@@ -21,9 +21,13 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      router.push('/dashboard');
+      if (user?.role === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, router, user]);
 
   const validate = () => {
     const newErrors = {};
