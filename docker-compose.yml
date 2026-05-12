@@ -1,54 +1,43 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:16-alpine
+  # Database
+  db:
+    image: postgres:15-alpine
     container_name: organia-db
     environment:
-      POSTGRES_DB: organia_tasks
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: organia_tasks
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # Spring Boot Backend
+  # Backend API
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    build: ./backend
     container_name: organia-backend
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/organia_tasks
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/organia_tasks
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      JWT_SECRET: myDockerSecretKeyForJWTTokenGeneration2024SuperLong
-      PORT: 8080
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: your_very_secret_and_long_jwt_secret_key_for_development
     depends_on:
-      postgres:
-        condition: service_healthy
+      - db
 
-  # Next.js Frontend
+  # Frontend Web
   frontend:
-    build:
+    build: 
       context: ./frontend
-      dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_BASE_URL: http://localhost:8080
     container_name: organia-frontend
     ports:
       - "3000:3000"
-    environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8080
     depends_on:
       - backend
 
