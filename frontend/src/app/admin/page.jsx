@@ -217,7 +217,7 @@ export default function AdminPanel() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {u.id !== user.id ? (
+                        {u.id !== user?.id ? (
                           <button
                             onClick={() => setDeleteTarget(u)}
                             className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
