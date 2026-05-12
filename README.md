@@ -40,16 +40,41 @@ Organia Task Manager is a modern, production-ready task management application t
 
 ---
 
-## 📸 Screenshots
+## 📸 Gallery
 
-> Add screenshots to a `screenshots/` folder and update the paths below.
+Experience the premium interface of Organia Task Manager:
 
-<!--
-![Dashboard](./screenshots/dashboard.png)
-![Calendar View](./screenshots/calendar.png)
-![Kanban Board](./screenshots/kanban.png)
-![Dark Mode](./screenshots/dark-mode.png)
--->
+### 🏠 Main Dashboard & Task Management
+![Main Dashboard](./screenshots/main-dashboard.png)
+*A high-density, professional view of all your tasks with real-time status tracking.*
+
+---
+
+### 📋 Kanban Board & Organization
+<div align="center">
+  <img src="./screenshots/kanban-board.png" alt="Kanban Board" width="49%" />
+  <img src="./screenshots/task-form.png" alt="Task Creation" width="49%" />
+</div>
+*Left: Drag-and-drop workflow management. Right: Powerful task creation with subtasks and categories.*
+
+---
+
+### 📅 Calendar & Insights
+<div align="center">
+  <img src="./screenshots/calendar-1.png" alt="Calendar View" width="49%" />
+  <img src="./screenshots/insights-analytics.png" alt="Insights" width="49%" />
+</div>
+*Visualize your schedule and track your productivity with detailed analytics.*
+
+---
+
+### 🛡️ Admin Panel & Mobile Access
+<div align="center">
+  <img src="./screenshots/admin-dashboard.png" alt="Admin Panel" width="49%" />
+  <img src="./screenshots/mobile-responsive.png" alt="Mobile Responsive" width="49%" />
+</div>
+*Secure administrative control and a fully fluid mobile experience.*
+
 
 ---
 
