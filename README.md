@@ -1,11 +1,11 @@
-# 🗂️ Organia Task Manager
+#  Organia Task Manager
 
 > A high-performance, full-stack Task Management Web Application.
 
 
 ---
 
-## 📋 Project Overview
+##  Project Overview
 
 Organia Task Manager is a modern, production-ready task management application that enables users to create, organize, and track tasks through an intuitive dashboard. It features secure authentication, real-time search, priority management, multiple views (List, Calendar, Kanban Board, Insights, Admin Panel), and full CRUD operations.
 
@@ -14,43 +14,43 @@ Organia Task Manager is a modern, production-ready task management application t
 
 ---
 
-## ✨ Features
+##  Features
 
 ### Core Features
-- ✅ User Authentication — Register, Login, Logout with JWT tokens
-- ✅ Task CRUD — Create, Read, Update, Delete tasks
-- ✅ Task Status Workflow — To Do → In Progress → Completed
-- ✅ User Isolation — Each user can only access their own tasks
-- ✅ Dashboard Analytics — Real-time summary cards with task counts
-- ✅ Error Handling — Global exception handler with structured error responses
+-  User Authentication — Register, Login, Logout with JWT tokens
+-  Task CRUD — Create, Read, Update, Delete tasks
+-  Task Status Workflow — To Do → In Progress → Completed
+-  User Isolation — Each user can only access their own tasks
+-  Dashboard Analytics — Real-time summary cards with task counts
+-  Error Handling — Global exception handler with structured error responses
 
 ### Advanced Features
-- 🔍 Real-time search by title
-- ⚡ Sort by priority, due date, or title
-- ⭐ Priority levels — Urgent, High, Medium, Low with color indicators
-- 📁 Categories — Organize tasks into Work, Personal, or custom lists
-- ✅ Subtasks / Checklists — Inline checklists with progress tracking
-- 📅 Calendar View — Visual calendar with priority-colored task dots
-- 📊 Kanban Board — Drag-and-drop board (To Do / In Progress / Done)
-- 📈 Insights Dashboard — Charts and statistics for task trends
-- 🌙 Dark Mode — Full dark/light theme toggle
-- 📱 Responsive Design — Mobile-first with collapsible sidebar
-- 🔔 Overdue Alerts — Visual indicators for past-due tasks
-- 🔄 One-click Reschedule — Reschedule overdue tasks to today
+-  Real-time search by title
+-  Sort by priority, due date, or title
+-  Priority levels — Urgent, High, Medium, Low with color indicators
+-  Categories — Organize tasks into Work, Personal, or custom lists
+-  Subtasks / Checklists — Inline checklists with progress tracking
+-  Calendar View — Visual calendar with priority-colored task dots
+-  Kanban Board — Drag-and-drop board (To Do / In Progress / Done)
+-  Insights Dashboard — Charts and statistics for task trends
+-  Dark Mode — Full dark/light theme toggle
+-  Responsive Design — Mobile-first with collapsible sidebar
+-  Overdue Alerts — Visual indicators for past-due tasks
+-  One-click Reschedule — Reschedule overdue tasks to today
 
 ---
 
-## 📸 Gallery
+##  Gallery
 
 Experience the premium interface of Organia Task Manager:
 
-### 🏠 Main Dashboard & Task Management
+###  Main Dashboard & Task Management
 ![Main Dashboard](./screenshots/main-dashboard.png)
 *A high-density, professional view of all your tasks with real-time status tracking.*
 
 ---
 
-### 📋 Kanban Board & Organization
+###  Kanban Board & Organization
 <div align="center">
   <img src="./screenshots/kanban-board.png" alt="Kanban Board" width="49%" />
   <img src="./screenshots/task-form.png" alt="Task Creation" width="49%" />
@@ -59,7 +59,7 @@ Experience the premium interface of Organia Task Manager:
 
 ---
 
-### 📅 Calendar & Insights
+###  Calendar & Insights
 <div align="center">
   <img src="./screenshots/calendar-1.png" alt="Calendar View" width="49%" />
   <img src="./screenshots/insights-analytics.png" alt="Insights" width="49%" />
@@ -68,7 +68,7 @@ Experience the premium interface of Organia Task Manager:
 
 ---
 
-### 🛡️ Admin Panel & Mobile Access
+###  Admin Panel & Mobile Access
 <div align="center">
   <img src="./screenshots/admin-dashboard.png" alt="Admin Panel" width="49%" />
   <img src="./screenshots/mobile-responsive.png" alt="Mobile Responsive" width="49%" />
@@ -78,7 +78,7 @@ Experience the premium interface of Organia Task Manager:
 
 ---
 
-## 🚀 Setup and Run Instructions
+##  Setup and Run Instructions
 
 ### Prerequisites
 - Backend Runtime Environment
@@ -152,8 +152,8 @@ Frontend starts at **http://localhost:3000**
 
 | Service | URL |
 |---|---|
-| **Frontend** | *Add your Vercel or Netlify URL here* |
-| **Backend** | *Add your Render URL here* |
+| **Frontend** | *https://organia-fullstack-task-maryam-wimal.vercel.app* |
+| **Backend** | *https://organia-fullstack-task-maryam.onrender.com* |
 
 ---
 
@@ -174,11 +174,10 @@ Frontend starts at **http://localhost:3000**
 
 ## 🎯 Demo Credentials
 
-| Field | Value |
-|---|---|
-| **Admin Email** | `admin@organia.com` |
-| **Password** | `Admin@123` |
-
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@organia.com` | `Password123!` |
+| Demo User | `demo@organia.com` | `Demo@123` |
 > You can also register a new account from the sign-up page.
 
 ---
@@ -200,7 +199,7 @@ Base URL: `http://localhost:8080` (local) or your deployed backend URL.
 {
   "name": "Admin User",
   "email": "admin@organia.com",
-  "password": "Admin@123"
+  "password": "Password123!"
 }
 ```
 
@@ -209,7 +208,7 @@ Base URL: `http://localhost:8080` (local) or your deployed backend URL.
 ```json
 {
   "email": "admin@organia.com",
-  "password": "Admin@123"
+  "password": "Password123!"
 }
 ```
 
@@ -305,7 +304,7 @@ All errors return structured JSON:
 
 ---
 
-## 🛡️ Error Handling
+##  Error Handling
 
 The application implements comprehensive error handling at every layer:
 
@@ -324,7 +323,7 @@ The application implements comprehensive error handling at every layer:
 
 ---
 
-## 🛡️ Proper Error Handling
+##  Proper Error Handling
 
 The application implements a robust, multi-layer error handling strategy:
 
@@ -342,7 +341,7 @@ The application implements a robust, multi-layer error handling strategy:
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 organia-fullstack-task/
@@ -372,7 +371,7 @@ organia-fullstack-task/
 
 ---
 
-## 👩‍💻 Author
+##  Author
 
 **Maryam Wimaleswaran**
 - GitHub: [@marzi3](https://github.com/marzi3)
@@ -381,4 +380,4 @@ organia-fullstack-task/
 
 ## 📄 License
 
-This project is open-source and available under the MIT License.
+This project is an internship assessment.
